@@ -120,7 +120,7 @@ const Navbar = () => {
               to="/leaderboard" 
               color="inherit" 
               startIcon={<Leaderboard />}
-              sx={{ textTransform: "none", fontSize: "20px" }}
+              sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
             >
               Leaderboard
             </Button>
@@ -131,7 +131,7 @@ const Navbar = () => {
               to="/rules"
               color="inherit"
               startIcon={<MenuBook />}
-              sx={{ textTransform: "none", fontSize: "20px" }}
+              sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
             >
               Rules
             </Button>
@@ -141,7 +141,7 @@ const Navbar = () => {
                 onClick={handleLogout} 
                 color="inherit" 
                 startIcon={<Logout />}
-                sx={{ textTransform: "none", fontSize: "20px" }}
+                sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
               >
                 Logout
               </Button>
@@ -151,7 +151,7 @@ const Navbar = () => {
                 to="/login" 
                 color="inherit" 
                 startIcon={<Login />}
-                sx={{ textTransform: "none", fontSize: "20px" }}
+                sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
               >
                 Login
               </Button>
