@@ -59,7 +59,7 @@ const AuthForm = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className={styles.authTitle}>{isSignUp ? "Sign Up" : "Login"}</h2>
+        <h2 className={styles.authTitle} style={{fontFamily : "cursive"}}>{isSignUp ? "Sign Up" : "Login"}</h2>
         <form onSubmit={handleSubmit}>
           {isSignUp && (
             <div className={styles.inputContainer}>
@@ -69,6 +69,7 @@ const AuthForm = () => {
                 name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                style={{fontFamily : "cursive"}}
                 placeholder="Username"
                 required
               />
@@ -81,6 +82,7 @@ const AuthForm = () => {
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              style={{fontFamily : "cursive"}}
               placeholder="Email"
               required
             />
@@ -92,6 +94,7 @@ const AuthForm = () => {
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              style={{fontFamily : "cursive"}}
               placeholder="Password"
               required
             />
@@ -104,17 +107,18 @@ const AuthForm = () => {
                 name="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                style={{fontFamily : "cursive"}}
                 placeholder="Confirm Password"
                 required
               />
             </div>
           )}
-          <motion.button whileHover={{ scale: 1.05 }} className={styles.authButton}>
+          <motion.button whileHover={{ scale: 1.05 }} className={styles.authButton} style={{fontFamily : "cursive"}}>
             {isSignUp ? "Sign Up" : "Login"}
           </motion.button>
         </form>
         <div className={styles.authFooter}>
-          <button onClick={() => setIsSignUp(!isSignUp)}>
+          <button onClick={() => setIsSignUp(!isSignUp)} style={{fontFamily : "cursive"}}>
             {isSignUp ? "Login Instead" : "Sign Up Instead"}
           </button>
         </div>

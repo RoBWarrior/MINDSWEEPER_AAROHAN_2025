@@ -27,7 +27,7 @@ const Navbar = () => {
   return (
     <AppBar 
       position="static" 
-      sx={{ background: "linear-gradient(to right, #040404ff, #000000ff)" }}
+      sx={{ background: "linear-gradient(to right, #240797ff, #810365ff)" }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         {/* App Title / Logo */}
@@ -37,10 +37,11 @@ const Navbar = () => {
           to="/" 
           sx={{ 
             textDecoration: "none", 
-            color: "#008afbff", 
+            color: "#e86d03ff", 
             fontWeight: "bold", 
             display: "flex", 
             alignItems: "center",
+            fontFamily: "cursive",
             gap: 1
           }}
         >
@@ -62,13 +63,14 @@ const Navbar = () => {
               anchorEl={anchorEl} 
               open={Boolean(anchorEl)} 
               onClose={() => setAnchorEl(null)}
-              sx={{ "& .MuiPaper-root": { background: "#1a1a1aff", color: "white" } }}
+              sx={{ "& .MuiPaper-root": { background: "linear-gradient(to right, #240797ff, #810365ff)", color: "white" } }}
             >
               {/* Leaderboard */}
               <MenuItem 
                 component={Link} 
                 to="/leaderboard" 
                 onClick={() => setAnchorEl(null)}
+                sx={{fontFamily : "cursive"}}
               >
                 <Leaderboard sx={{ mr: 1 }} /> 
                 Leaderboard
@@ -79,6 +81,7 @@ const Navbar = () => {
                 component={Link} 
                 to="/rules" 
                 onClick={() => setAnchorEl(null)}
+                sx={{fontFamily : "cursive"}}
               >
                 <MenuBook sx={{ mr: 1 }} /> 
                 Rules
@@ -91,6 +94,7 @@ const Navbar = () => {
                     handleLogout();
                     setAnchorEl(null);
                   }}
+                  sx={{fontFamily : "cursive"}}
                 >
                   <Logout sx={{ mr: 1 }} /> 
                   Logout
@@ -100,6 +104,7 @@ const Navbar = () => {
                   component={Link} 
                   to="/login" 
                   onClick={() => setAnchorEl(null)}
+                  sx={{fontFamily : "cursive"}}
                 >
                   <Login sx={{ mr: 1 }} /> 
                   Login

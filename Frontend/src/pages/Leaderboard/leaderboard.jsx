@@ -82,7 +82,7 @@ const Leaderboard = () => {
           margin: "0 auto",
           padding: "2rem",
           textAlign: "center",
-          color: "#fef5f5ff",
+          color: "#edeee5ff",
         }}
       >
         <h1
@@ -92,6 +92,7 @@ const Leaderboard = () => {
             marginBottom: "1.5rem",
             textTransform: "uppercase",
             letterSpacing: "2px",
+            fontFamily: "cursive"
           }}
         >
           Leaderboard
@@ -102,9 +103,9 @@ const Leaderboard = () => {
             <TailSpin
               visible={true}
               height="135"
-              width="135"
+              width="550"
               ariaLabel="loading"
-              color="#00BFFF"
+              color="#06b9f5ff"
             />
           </div>
         ) : currentPageData.length ? (
@@ -128,20 +129,20 @@ const Leaderboard = () => {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      backgroundColor: "rgba(196, 202, 172, 0.1)",
                       border: rowBorder,
                       borderRadius: "6px",
                       padding: "0.75rem 1rem",
                       fontSize: "1.1rem",
                     }}
                   >
-                    <span style={{ flex: "0 0 2rem", fontWeight: "bold" }}>
+                    <span style={{ flex: "0 0 2rem", fontWeight: "bold", fontFamily: "cursive" }}>
                       {overallRank}
                     </span>
-                    <span style={{ flex: "1", textAlign: "center", fontWeight: 500 }}>
+                    <span style={{ flex: "1", textAlign: "center", fontWeight: 500, fontFamily: "cursive" }}>
                       {elem.username}
                     </span>
-                    <span style={{ flex: "0 0 6rem", textAlign: "right" }}>
+                    <span style={{ flex: "0 0 6rem", textAlign: "right", fontFamily: "cursive" }}>
                       {elem.points} pts
                     </span>
                   </div>
@@ -170,12 +171,13 @@ const Leaderboard = () => {
                   borderRadius: "4px",
                   cursor: currentPage === 1 ? "not-allowed" : "pointer",
                   opacity: currentPage === 1 ? 0.5 : 1,
+                  fontFamily: "cursive"
                 }}
               >
                 Previous
               </button>
 
-              <span style={{ fontWeight: 500 }}>
+              <span style={{ fontWeight: 500, fontFamily: "cursive" }}>
                 Page {currentPage} of {totalPages}
               </span>
 
@@ -190,6 +192,7 @@ const Leaderboard = () => {
                   borderRadius: "4px",
                   cursor: currentPage === totalPages ? "not-allowed" : "pointer",
                   opacity: currentPage === totalPages ? 0.5 : 1,
+                  fontFamily: "cursive"
                 }}
               >
                 Next
