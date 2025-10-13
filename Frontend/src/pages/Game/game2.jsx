@@ -1,420 +1,365 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import CryptoJS from 'crypto-js';
+// src/pages/Game/game2.jsx
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
-// Utility function to reshuffle an array using Fisher-Yates.
-const shuffleArray = (array) => {
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-  }
-  return newArray;
-};
+/*
+  UI layout:
+  - S x S number cells
+  - horizontal operator slots between numbers (rendered between cells)
+  - vertical operator slots between rows (rendered below each row)
+  - Pools: numbers and operators to drag/click
+*/
 
-const Game2 = () => {
+const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+export default function Game2() {
   const { length } = useParams();
-  const gameLength = parseInt(length) || 2;
-  
-  const localStorageKey = `game2Data_${gameLength}`;
+  const size = Math.max(2, Math.min(7, parseInt(length || '3', 10)));
 
-  const [target, setTarget] = useState(null);
-  const [availableNumbers, setAvailableNumbers] = useState([]);
-  const [availableOperators, setAvailableOperators] = useState([]);
-  const [placedNodes, setPlacedNodes] = useState([]);
-  const [placedEdges, setPlacedEdges] = useState([]);
-  // Keep the original pools for resets.
-  const [initialNumbers, setInitialNumbers] = useState([]);
-  const [initialOperators, setInitialOperators] = useState([]);
+  const [gameId, setGameId] = useState(null);
+  const [numbersGrid, setNumbersGrid] = useState([]); // S x S
+  const [hOperators, setHOperators] = useState([]); // S x (S-1)
+  const [vOperators, setVOperators] = useState([]); // (S-1) x S
+  const [poolNumbers, setPoolNumbers] = useState([]);
+  const [poolOperators, setPoolOperators] = useState([]);
+  const [across, setAcross] = useState([]); // targets for each row
+  const [down, setDown] = useState([]); // targets for each col
+  const [selectedCell, setSelectedCell] = useState(null); // {type:'num'/'hOp'/'vOp', r,c}
   const [message, setMessage] = useState('');
-  const [currGameId,setCurrGameId] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(null);
-  const [selectedType, setSelectedType] = useState(null);
+  const [initialState, setInitialState] = useState(null);
 
-  const loadNewGame = () => {
-    fetch(`https://mindsweeper-api.onrender.com/api/generate-game?length=${gameLength}`)
-      .then(response => response.json())
-      .then(data => {
-        // API returns: { target, chosenNumbers, operatorPool }
-  
-        // Shuffle the arrays
-        const initialNumbers = data.chosenNumbers;
-        const initialOperators = data.operatorPool;
-        const gameId = data.gameId;
-        let Numbers = initialNumbers;
-        let Operators = initialOperators;
-  
-        // Select placed nodes and edges
-        const placedNodes = Array(Numbers.length).fill(null);
-        const placedEdges = Array(Operators.length).fill(null);
-  
-        if(Numbers.length > 3){
-          // Set values at specific indices
-          placedNodes[1] = Numbers[1];
-          placedNodes[3] = Numbers[3];
-          placedEdges[2] = Operators[2];
-        
+  const storageKey = `arith_cross_${size}`;
 
-        if(Numbers.length > 5){
-          placedNodes[6] = Numbers[6];
-          placedEdges[4] = Operators[4];
-        }
-  
-        // Remove the placed nodes and edges from the arrays
-        Numbers = Numbers.filter((_, index) => index !== 1 && index !== 3 && index !== 6);
-        Operators = Operators.filter((_, index) => index !== 2 && index !== 4);
-        }
-  
-        // Update the state with the newly modified values
-        setTarget(data.target);
-        setAvailableNumbers(shuffleArray(Numbers)); // Updated list of numbers
-        setAvailableOperators(shuffleArray(Operators)); // Updated list of operators
-        setInitialNumbers(shuffleArray(Numbers));
-        setInitialOperators(shuffleArray(Operators));
-        setPlacedNodes(placedNodes);
-        setPlacedEdges(placedEdges);
-        setCurrGameId(gameId);
-  
-        // Save to localStorage for persistence.
-        localStorage.setItem(localStorageKey, JSON.stringify({
-          target: data.target,
-          initialNumbers: initialNumbers,
-          initialOperators: initialOperators,
-          gameId: gameId
-        }));
-  
-        setMessage('');
-      })
-      .catch(err => console.error("Error fetching new game data:", err));
-  };
-  
+  const fetchGame = useCallback(async () => {
+    try {
+      const res = await axios.get(`/api/generate-game?size=${size}`);
+      const d = res.data;
+      setGameId(d.gameId);
+      setNumbersGrid(d.numbersGrid);
+      setHOperators(d.hOperators);
+      setVOperators(d.vOperators);
+      setAcross(d.across || []);
+      setDown(d.down || []);
+      // pool provided; shuffle
+      setPoolNumbers(shuffle(d.poolNumbers || []));
+      setPoolOperators(shuffle(d.poolOperators || []));
+      setInitialState({
+        numbersGrid: d.numbersGrid,
+        hOperators: d.hOperators,
+        vOperators: d.vOperators,
+        poolNumbers: d.poolNumbers,
+        poolOperators: d.poolOperators,
+        preplaced: d.preplaced || null
+      });
+      // persist
+      localStorage.setItem(storageKey, JSON.stringify({ gameId:d.gameId, size:d.size, numbersGrid:d.numbersGrid, hOperators:d.hOperators, vOperators:d.vOperators, across:d.across, down:d.down, poolNumbers:d.poolNumbers, poolOperators:d.poolOperators, preplaced:d.preplaced||null }));
+      setMessage('');
+    } catch (err) {
+      console.error(err);
+      setMessage('Failed to load game from server.');
+    }
+  }, [size, storageKey]);
 
   useEffect(() => {
-    
-    const savedData = localStorage.getItem(localStorageKey);
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      let Numbers = parsed.initialNumbers;
-      let Operators = parsed.initialOperators;
-
-      // Select placed nodes and edges
-      const placedNodes = Array(Numbers.length).fill(null);
-      const placedEdges = Array(Operators.length).fill(null);
-
-      if(Numbers.length > 3){
-        // Set values at specific indices
-        placedNodes[1] = Numbers[1];
-        placedNodes[3] = Numbers[3];
-        placedEdges[2] = Operators[2];
-      
-
-      if(Numbers.length > 5){
-        placedNodes[6] = Numbers[6];
-        placedEdges[4] = Operators[4];
-      }
-
-      // Remove the placed nodes and edges from the arrays
-      Numbers = Numbers.filter((_, index) => index !== 1 && index !== 3 && index !== 6);
-      Operators = Operators.filter((_, index) => index !== 2 && index !== 4);
-      }
-
-      // Update the state with the newly modified values
-      setTarget(parsed.target);
-      setAvailableNumbers(shuffleArray(Numbers)); // Updated list of numbers
-      setAvailableOperators(shuffleArray(Operators)); // Updated list of operators
-      setInitialNumbers(shuffleArray(Numbers));
-      setInitialOperators(shuffleArray(Operators));
-      setPlacedNodes(placedNodes);
-      setPlacedEdges(placedEdges);
-      setCurrGameId(parsed.gameId)
-    } else {
-      // Otherwise, fetch new game data.
-      loadNewGame();
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        if (Array.isArray(p.numbersGrid)) {
+          setGameId(p.gameId || null);
+          setNumbersGrid(p.numbersGrid);
+          setHOperators(p.hOperators || []);
+          setVOperators(p.vOperators || []);
+          setPoolNumbers(shuffle(p.poolNumbers || []));
+          setPoolOperators(shuffle(p.poolOperators || []));
+          setAcross(p.across || []);
+          setDown(p.down || []);
+          setInitialState({ numbersGrid: p.numbersGrid, hOperators: p.hOperators, vOperators: p.vOperators, poolNumbers: p.poolNumbers, poolOperators: p.poolOperators, preplaced: p.preplaced||null });
+          return;
+        }
+      } catch (e) {}
     }
-  }, [gameLength, localStorageKey]);
+    fetchGame();
+  }, [fetchGame, storageKey]);
 
-  // Drag start: store item and type.
-  const onDragStart = (e, item, type) => {
-    e.dataTransfer.setData("text/plain", JSON.stringify({ item, type }));
+  // drag handlers
+  const onDragStart = (e, payload) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(payload));
+  };
+  const allowDrop = (e) => e.preventDefault();
+
+  // place number into numbersGrid at r,c
+  const placeNumber = (r, c, value) => {
+    setNumbersGrid(prev => {
+      const copy = prev.map(row => [...row]);
+      if (copy[r][c] !== null) return prev; // do not overwrite
+      copy[r][c] = value;
+      return copy;
+    });
+    setPoolNumbers(prev => {
+      const i = prev.indexOf(value);
+      if (i === -1) return prev;
+      const next = [...prev.slice(0,i), ...prev.slice(i+1)];
+      return next;
+    });
   };
 
-  // Allow dropping.
-  const allowDrop = (e) => {
+  // place horizontal operator at r,c (between c and c+1)
+  const placeHOp = (r, c, op) => {
+    setHOperators(prev => {
+      const copy = prev.map(row => [...row]);
+      if (copy[r][c] !== null) return prev;
+      copy[r][c] = op;
+      return copy;
+    });
+    setPoolOperators(prev => {
+      const i = prev.indexOf(op);
+      if (i === -1) return prev;
+      return [...prev.slice(0,i), ...prev.slice(i+1)];
+    });
+  };
+
+  // place vertical operator at r,c (between r and r+1)
+  const placeVOp = (r, c, op) => {
+    setVOperators(prev => {
+      const copy = prev.map(row => [...row]);
+      if (copy[r][c] !== null) return prev;
+      copy[r][c] = op;
+      return copy;
+    });
+    setPoolOperators(prev => {
+      const i = prev.indexOf(op);
+      if (i === -1) return prev;
+      return [...prev.slice(0,i), ...prev.slice(i+1)];
+    });
+  };
+
+  // generic onDrop handlers
+  const onDropNumber = (e, r, c) => {
     e.preventDefault();
+    try {
+      const { type, value } = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (type !== 'number') return;
+      placeNumber(r, c, value);
+    } catch (err) {}
   };
-
-  // Drop handler for number nodes.
-  const onDropNode = (e, index) => {
+  const onDropHOp = (e, r, c) => {
     e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-    if (data.type !== "number" || placedNodes[index] !== null) return;
-    const newNodes = [...placedNodes];
-    newNodes[index] = data.item;
-    setPlacedNodes(newNodes);
-    // Remove only one occurrence.
-    setAvailableNumbers(prev => {
-      const i = prev.indexOf(data.item);
-      return i === -1 ? prev : [...prev.slice(0, i), ...prev.slice(i + 1)];
-    });
-    checkBoardComplete(newNodes, placedEdges);
+    try {
+      const { type, value } = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (type !== 'operator') return;
+      placeHOp(r, c, value);
+    } catch (err) {}
   };
-
-  const placeNumber = (number) => {
-    console.log(number);
-    if(selectedType != 'node'){
-      return;
-    }
-    const newNodes = [...placedNodes];
-    newNodes[selectedIndex] = number;
-    setPlacedNodes(newNodes);
-    // Remove only one occurrence.
-    setAvailableNumbers(prev => {
-      const i = prev.indexOf(number);
-      return i === -1 ? prev : [...prev.slice(0, i), ...prev.slice(i + 1)];
-    });
-    checkBoardComplete(newNodes, placedEdges);
-  }
-
-  const placeOperator = (operator) => {
-    console.log(operator);
-    if(selectedType != 'edge'){
-      return;
-    }
-    const newEdges = [...placedEdges];
-    newEdges[selectedIndex] = operator;
-    setPlacedEdges(newEdges);
-    // Remove only one occurrence.
-    setAvailableOperators(prev => {
-      const i = prev.indexOf(operator);
-      return i === -1 ? prev : [...prev.slice(0, i), ...prev.slice(i + 1)];
-    });
-    checkBoardComplete(placedNodes, newEdges);
-  }
-  // Drop handler for operator edges.
-  const onDropEdge = (e, index) => {
+  const onDropVOp = (e, r, c) => {
     e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-    if (data.type !== "operator" || placedEdges[index] !== null) return;
-    const newEdges = [...placedEdges];
-    newEdges[index] = data.item;
-    setPlacedEdges(newEdges);
-    // Remove only one occurrence.
-    setAvailableOperators(prev => {
-      const i = prev.indexOf(data.item);
-      return i === -1 ? prev : [...prev.slice(0, i), ...prev.slice(i + 1)];
-    });
-    checkBoardComplete(placedNodes, newEdges);
+    try {
+      const { type, value } = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (type !== 'operator') return;
+      placeVOp(r, c, value);
+    } catch (err) {}
   };
 
-  // Compute the sequential result (left-to-right evaluation).
-  const computeResult = (nodes, edges) => {
-    if (nodes[0] === null) return null;
-    let result = parseInt(nodes[0]);
-    for (let i = 0; i < edges.length; i++) {
-      if (edges[i] === null || nodes[i + 1] === null) break;
-      const nextVal = parseInt(nodes[i + 1]);
-      const op = edges[i];
-      if (op === '+') result += nextVal;
-      else if (op === '-') result -= nextVal;
-      else if (op === '*') result *= nextVal;
-      else if (op === '/') result = Math.floor(result / nextVal);
+  const removePlacedNumber = (r, c) => {
+    setNumbersGrid(prev => {
+      const copy = prev.map(row => [...row]);
+      const v = copy[r][c];
+      if (v === null) return prev;
+      copy[r][c] = null;
+      setPoolNumbers(prevPool => [...prevPool, v]);
+      return copy;
+    });
+  };
+  const removePlacedHOp = (r, c) => {
+    setHOperators(prev => {
+      const copy = prev.map(row => [...row]);
+      const v = copy[r][c];
+      if (v === null) return prev;
+      copy[r][c] = null;
+      setPoolOperators(prevPool => [...prevPool, v]);
+      return copy;
+    });
+  };
+  const removePlacedVOp = (r, c) => {
+    setVOperators(prev => {
+      const copy = prev.map(row => [...row]);
+      const v = copy[r][c];
+      if (v === null) return prev;
+      copy[r][c] = null;
+      setPoolOperators(prevPool => [...prevPool, v]);
+      return copy;
+    });
+  };
+
+  // compute across/ down values for display (left-to-right)
+  const computeRow = (r) => {
+    const nums = numbersGrid[r];
+    const ops = hOperators[r];
+    if (!nums || !ops) return null;
+    if (nums.some(x => x === null) || ops.some(x => x === null)) return null;
+    let cur = Number(nums[0]);
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i], nxt = Number(nums[i+1]);
+      if (op === '+') cur = cur + nxt;
+      else if (op === '-') cur = cur - nxt;
+      else if (op === '*') cur = cur * nxt;
+      else if (op === '/') { if (nxt === 0) return null; cur = Math.trunc(cur / nxt); }
     }
-    return result;
+    return cur;
+  };
+  const computeCol = (c) => {
+    const nums = numbersGrid.map(r => r[c]);
+    const ops = vOperators.map(r => r[c]);
+    if (nums.some(x => x === null) || ops.some(x => x === null)) return null;
+    let cur = Number(nums[0]);
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i], nxt = Number(nums[i+1]);
+      if (op === '+') cur = cur + nxt;
+      else if (op === '-') cur = cur - nxt;
+      else if (op === '*') cur = cur * nxt;
+      else if (op === '/') { if (nxt === 0) return null; cur = Math.trunc(cur / nxt); }
+    }
+    return cur;
   };
 
-  const addPoints = () => {
-    const gameId = JSON.stringify(currGameId);
-    const secretKey = 'Z8yd9sfG9h1r3f9$jb0vXp!92mbR6hFz';
-    console.log(gameId)
-  
-    const encryptedGameId = CryptoJS.AES.encrypt(gameId, secretKey).toString();
-  
-    const email = localStorage.getItem('email');
-  
-    axios.post('https://mindsweeper-api.onrender.com/api/update-points', {
-      encryptedGameId,
-      email_id: email,  
-      points: gameLength === 3 ? 2 : gameLength === 5 ? 5 : gameLength === 7 ? 10 : 0
-    })
-    .then(response => {
-      console.log('Points updated successfully:', response.data);
-    })
-    .catch(err => {
-      console.error("Error updating points:", err);
-    });
-  };
-
-  const checkBoardComplete = (nodes, edges) => {
-    if (nodes.every(val => val !== null) && edges.every(val => val !== null)) {
-      const finalResult = computeResult(nodes, edges);
-      if (finalResult === target) {
-        setMessage("Congratulations! Correct result achieved. Loading new game...");
-        addPoints()
-        setTimeout(() => {
-          loadNewGame();
-        }, 2000);
+  const submit = async () => {
+    try {
+      const email = localStorage.getItem('email') || null;
+      const payload = { gameId, numbersGrid, hOperators, vOperators, email };
+      const res = await axios.post('/api/validate-game', payload);
+      if (res.data && res.data.solved) {
+        setMessage(res.data.message || 'Solved!');
+        // load new game if provided
+        if (res.data.newGame) {
+          const p = res.data.newGame;
+          setGameId(p.gameId);
+          setNumbersGrid(p.numbersGrid);
+          setHOperators(p.hOperators);
+          setVOperators(p.vOperators);
+          setPoolNumbers(shuffle(p.poolNumbers || []));
+          setPoolOperators(shuffle(p.poolOperators || []));
+          setAcross(p.across || []);
+          setDown(p.down || []);
+          localStorage.setItem(storageKey, JSON.stringify({ gameId:p.gameId, size:p.size, numbersGrid:p.numbersGrid, hOperators:p.hOperators, vOperators:p.vOperators, poolNumbers:p.poolNumbers, poolOperators:p.poolOperators, preplaced:p.preplaced||null }));
+        }
       } else {
-        setMessage("Incorrect result. Resetting game...");
-        setTimeout(() => {
-          resetBoard();
-        }, 2000);
+        setMessage(res.data?.message || 'Not solved');
       }
+    } catch (err) {
+      console.error(err);
+      setMessage('Validation failed');
     }
   };
 
-  // Reset the board (while keeping the same target and pool).
-  const resetBoard = () => {
-    setPlacedNodes(Array(initialNumbers.length).fill(null));
-    setPlacedEdges(Array(initialOperators.length).fill(null));
-    setAvailableNumbers([...initialNumbers]);
-    setAvailableOperators([...initialOperators]);
-    setMessage('');
-  };
+  // Render helpers
+  if (!numbersGrid || numbersGrid.length === 0) {
+    return <div style={{padding:20}}>Loading...</div>;
+  }
+
+  const S = numbersGrid.length;
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h2>Target: {target !== null ? target : 'Loading...'}</h2>
-      {message && <h3>{message}</h3>}
+    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
+      <h2>Arithmetic Crossword — {S}×{S}</h2>
+      <div style={{ marginTop: 10 }}>Game ID: {gameId}</div>
+      <div style={{ marginTop: 10, color: '#444' }}>{message}</div>
 
-      {/* Game Board */}
-      <div style={{ margin: '20px 0' }}>
-  <h3>Game Board</h3>
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexWrap: 'wrap',
-      gap: '5px',
-      maxWidth: '100%',
-    }}
-  >
-    {placedNodes.map((node, index) => (
-      <React.Fragment key={`node-${index}`}>
-        {/* Node as a perfect circle */}
-        <div
-          onDrop={(e) => onDropNode(e, index)}
-          onDragOver={allowDrop}
-          onClick={() => {
-            setSelectedIndex(index);
-            setSelectedType('node');
-          }}
-          style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            border: selectedIndex === index && selectedType === 'node' ? '3px solid red' : '2px solid #333',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '5px',
-            backgroundColor: '#fff',
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#333',
-            cursor: 'pointer',
-          }}
-        >
-          {node !== null ? node : ''}
-        </div>
-        {/* Edge as a squared diamond */}
-        {index < placedEdges.length && (
-          <div
-            onDrop={(e) => onDropEdge(e, index)}
-            onDragOver={allowDrop}
-            onClick={() => {
-              setSelectedIndex(index);
-              setSelectedType('edge');
-            }}
-            style={{
-              width: '50px',
-              height: '50px',
-              border: selectedIndex === index && selectedType === 'edge' ? '3px solid red' : '2px solid #333',
-              backgroundColor: '#f0f8ff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '5px',
-              transform: 'rotate(45deg)',
-              cursor: 'pointer',
-            }}
-          >
-            <div
-              style={{
-                transform: 'rotate(-45deg)',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                color: '#007bff',
-              }}
-            >
-              {placedEdges[index] ? placedEdges[index] : ''}
+      <div style={{ display: 'inline-block', marginTop: 20 }}>
+        {/* Grid rendering */}
+        {numbersGrid.map((row, r) => (
+          <div key={`row-${r}`} style={{ display: 'flex', marginBottom: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* number cell + vertical operator below (for each column) */}
             </div>
+            {row.map((num, c) => (
+              <div key={`cell-${r}-${c}`} style={{ display: 'flex', alignItems: 'center' }}>
+                {/* Number cell */}
+                <div
+                  onDrop={(e) => onDropNumber(e, r, c)}
+                  onDragOver={allowDrop}
+                  onDoubleClick={() => removePlacedNumber(r, c)}
+                  style={{
+                    width: 50, height: 50, borderRadius: 8, border: '2px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginRight: 6, background: '#fff', fontWeight: 'bold', cursor: 'pointer'
+                  }}
+                >
+                  {numbersGrid[r][c] !== null ? numbersGrid[r][c] : ''}
+                </div>
+
+                {/* horizontal operator slot (if not last column) */}
+                {c < S - 1 && (
+                  <div
+                    onDrop={(e) => onDropHOp(e, r, c)}
+                    onDragOver={allowDrop}
+                    onDoubleClick={() => removePlacedHOp(r, c)}
+                    style={{
+                      width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(0deg)',
+                      border: '2px solid #007bff', marginRight: 6, borderRadius: 6, background: '#f7fbff', fontWeight: 'bold'
+                    }}
+                  >
+                    {hOperators[r] && hOperators[r][c] ? hOperators[r][c] : ''}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        )}
-      </React.Fragment>
-    ))}
-  </div>
-</div>
+        ))}
 
-      {/* Available Numbers */}
-      <div style={{ margin: '20px 0' }}>
-        <h3>Available Numbers</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center',alignItems: 'center' }}>
-          {availableNumbers.map((num, idx) => (
-            <div
-              key={`num-${idx}`}
-              onClick={(e)=>placeNumber(num)}
-              style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                border: '1px solid gray',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '5px',
-                backgroundColor: '#fff',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                color: '#333',
-              }}
-            >
-              {num}
-            </div>
-          ))}
+        {/* vertical operator row labels (visual cues) */}
+        <div style={{ marginTop: 8 }}>
+          <small style={{ color: '#666' }}>Tip: double-click placed items to remove.</small>
+        </div>
+
+        {/* display down targets alongside grid */}
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: '600' }}>Across (row) targets:</div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
+            {across.map((a, i) => {
+              const val = computeRow(i);
+              return <div key={`a-${i}`} style={{ padding: 6, border: '1px solid #ddd' }}>Row {i}: target {a.target} {val !== null ? `(current ${val})` : ''}</div>;
+            })}
+          </div>
+
+          <div style={{ fontSize: 14, fontWeight: '600', marginTop: 8 }}>Down (col) targets:</div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
+            {down.map((d, i) => {
+              const val = computeCol(i);
+              return <div key={`d-${i}`} style={{ padding: 6, border: '1px solid #ddd' }}>Col {i}: target {d.target} {val !== null ? `(current ${val})` : ''}</div>;
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Available Operators */}
-      <div style={{ margin: '20px 0' }}>
-        <h3>Available Operators</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap' ,justifyContent: 'center',alignItems: 'center'}}>
-          {availableOperators.map((op, idx) => (
-            <div
-              key={`op-${idx}`}
-              onClick={(e)=> placeOperator(op)}
-              style={{
-                width: '50px',
-                height: '50px',
-                border: '1px solid gray',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '5px',
-                backgroundColor: '#fff',
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: '#007bff',
-              }}
-            >
-              {op}
-            </div>
-          ))}
+      {/* Pools */}
+      <div style={{ marginTop: 18, display: 'flex', gap: 20 }}>
+        <div>
+          <h4>Numbers pool</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {poolNumbers.map((n, idx) => (
+              <div key={`pnum-${idx}`} draggable onDragStart={(e) => onDragStart(e, { type: 'number', value: n })} style={{ width: 44, height: 44, borderRadius: 8, border: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'grab' }}>
+                {n}
+              </div>
+            ))}
+          </div>
         </div>
+
+        <div>
+          <h4>Operators pool</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {poolOperators.map((o, idx) => (
+              <div key={`pop-${idx}`} draggable onDragStart={(e) => onDragStart(e, { type: 'operator', value: o })} style={{ width: 44, height: 44, borderRadius: 8, border: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'grab' }}>
+                {o}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 18 }}>
+        <button onClick={submit} style={{ padding: '8px 14px', background: '#0b79d0', color: '#fff', border: 'none', borderRadius: 6 }}>Submit</button>
+        <button onClick={() => { localStorage.removeItem(storageKey); fetchGame(); }} style={{ marginLeft: 12, padding: '8px 14px' }}>New Game</button>
       </div>
     </div>
   );
-};
-
-export default Game2;
+}

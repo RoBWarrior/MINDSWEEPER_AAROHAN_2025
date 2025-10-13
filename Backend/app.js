@@ -27,6 +27,9 @@ app.use("/api/auth", authRoutes);
 const gameRoutes = require("./api/game");
 app.use("/api", gameRoutes);
 
+const arithRoutes = require('./api/game2');
+app.use('/api', arithRoutes);
+
 const pointRoutes = require("./api/points.js");
 app.use("/api",pointRoutes);
 
