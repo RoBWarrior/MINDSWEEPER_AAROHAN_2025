@@ -1,332 +1,248 @@
 import React, { useState, useEffect } from "react";
-import { Button, Card, CardContent, Typography, Grid, Box } from "@mui/material";
+import { Button, Typography, Grid, Box, Paper } from "@mui/material";
 import axios from "axios";
-import CryptoJS from 'crypto-js';
+import bg from "../../../public/assets/istockphoto-636705942-612x612.jpg"
 
-const Game1 = () => {
-  const [gameData, setGameData] = useState(null);
-  // Reserve 6 slots for numbers (operands) and 5 for operators
-  const [selectedNumbers, setSelectedNumbers] = useState(Array(6).fill(null));
-  const [selectedOperators, setSelectedOperators] = useState(Array(5).fill(null));
-  const [activeSlot, setActiveSlot] = useState(null); // currently selected number slot index
-  const [score, setScore] = useState(0);
-  const [runningResult, setRunningResult] = useState(null);
-  const [message, setMessage] = useState("");
+/**
+ * Backend URL selection:
+ * - Vite: import.meta.env.VITE_API_URL
+ * - CRA: process.env.REACT_APP_API_URL
+ * - fallback: http://localhost:5000
+ */
+const BACKEND_BASE = "http://localhost:5000";
+
+// Background image selection (Vite / CRA env var support + fallback)
+const BACKGROUND_IMAGE = bg;
+
+const cloneGrid = (g) => g.map((row) => row.slice());
+const isAllZeros = (grid) => grid.every(row => row.every(cell => Number(cell) === 0));
+
+const applyClick = (grid, r, c) => {
+  const R = 3, C = 3;
+  const g = cloneGrid(grid);
+  const inc = (rr, cc) => {
+    if (rr >= 0 && rr < R && cc >= 0 && cc < C) {
+      g[rr][cc] = (g[rr][cc] + 1) % 3;
+    }
+  };
+  inc(r, c);
+  inc(r - 1, c);
+  inc(r + 1, c);
+  inc(r, c - 1);
+  inc(r, c + 1);
+  return g;
+};
+
+const LightGridGame = () => {
+  const [grid, setGrid] = useState(null);
+  const [gameId, setGameId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currGameId, setCurrGameId] = useState('');
+  const [message, setMessage] = useState("");
+  const [history, setHistory] = useState([]); // stack of previous grids for undo
+  const [moves, setMoves] = useState([]); // move sequence {r,c}
+  const [awardedPoints, setAwardedPoints] = useState(0);
+  const [verifying, setVerifying] = useState(false);
 
-  // Fetch game data on mount (assumes API returns 12 numbers and a target)
   useEffect(() => {
-    fetchGameData();
+    fetchGame();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch game data and mark each card as not used
-  const fetchGameData = async () => {
+  const fetchGame = async () => {
+    setLoading(true);
+    setMessage("");
+    setHistory([]);
+    setMoves([]);
+    setAwardedPoints(0);
     try {
-      setLoading(true);
-      // We assume length=6 returns 12 cards along with a target
-      const response = await axios.get(`https://mindsweeper-api.onrender.com/api/generate-game?length=6`);
-      const newGameData = {
-        ...response.data,
-        numbers: response.data.numbers.map((num) => ({
-          value: num,
-          used: false,
-        })),
-      };
-      const gameId = newGameData.gameId;
-      setGameData(newGameData);
-      resetSelections();
-      setMessage("");
-      setCurrGameId(gameId);
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load game data");
-      setLoading(false);
-    }
-  };
-
-  // Reset the number and operator selections and clear active slot
-  const resetSelections = () => {
-    setSelectedNumbers(Array(6).fill(null));
-    setSelectedOperators(Array(5).fill(null));
-    setActiveSlot(null);
-    setRunningResult(null);
-  };
-
-  // Reset the game by marking all cards as unused and clearing selections.
-  const resetGame = () => {
-    if (gameData) {
-      const resetNumbers = gameData.numbers.map((card) => ({
-        ...card,
-        used: false,
-      }));
-      setGameData({ ...gameData, numbers: resetNumbers });
-    }
-    resetSelections();
-    setMessage("");
-  };
-
-  // When a number slot is clicked, mark it as active (if empty)
-  const handleSlotClick = (index) => {
-    if (selectedNumbers[index] === null) {
-      setActiveSlot(index);
-      setMessage("");
-    }
-  };
-
-  // When a card is clicked, assign its number to the active slot and mark the card as used.
-  const handleCardClick = (cardIndex) => {
-    if (activeSlot === null) {
-      setMessage("Please select an empty section first.");
-      return;
-    }
-    if (gameData.numbers[cardIndex].used) return; // ignore if already used
-
-    const cardValue = gameData.numbers[cardIndex].value;
-    const newNumbers = gameData.numbers.map((card, i) =>
-      i === cardIndex ? { ...card, used: true } : card
-    );
-    setGameData({ ...gameData, numbers: newNumbers });
-
-    const newSelectedNumbers = [...selectedNumbers];
-    newSelectedNumbers[activeSlot] = cardValue;
-    setSelectedNumbers(newSelectedNumbers);
-    setActiveSlot(null);
-  };
-
-  // When an operator button is clicked, add it to the next available operator slot.
-  const handleOperatorClick = (op) => {
-    const filledNumbersCount = selectedNumbers.filter((num) => num !== null).length;
-    const filledOperatorsCount = selectedOperators.filter((operator) => operator !== null).length;
-    if (filledNumbersCount === 0) {
-      setMessage("Please select a number first.");
-      return;
-    }
-    if (filledOperatorsCount >= filledNumbersCount) {
-      setMessage("Select another number before adding an operator.");
-      return;
-    }
-    const newOperators = [...selectedOperators];
-    newOperators[filledOperatorsCount] = op;
-    setSelectedOperators(newOperators);
-    setMessage("");
-  };
-
-  // Helper function to compute the running result from the filled slots.
-  const computeRunningResult = () => {
-    if (selectedNumbers[0] === null) return null;
-    let result = selectedNumbers[0];
-    // Use operators only if both operator and next number are filled.
-    for (let i = 0; i < selectedOperators.length; i++) {
-      if (selectedOperators[i] !== null && selectedNumbers[i + 1] !== null) {
-        const op = selectedOperators[i];
-        const nextNum = selectedNumbers[i + 1];
-        if (op === "+") result += nextNum;
-        else if (op === "-") result -= nextNum;
-        else if (op === "*") result *= nextNum;
-        else if (op === "/" && nextNum !== 0) result = Math.floor(result / nextNum);
+      const resp = await axios.get(`${BACKEND_BASE}/api/generate-game`, { timeout: 6000 });
+      if (resp.data && resp.data.grid) {
+        setGrid(resp.data.grid);
+        setGameId(resp.data.gameId || null);
       } else {
-        break;
+        setMessage("Unexpected response from server.");
       }
+    } catch (err) {
+      console.error("Fetch game error:", err);
+      if (err.response) setMessage(`Server error: ${err.response.status}`);
+      else if (err.request) setMessage(`No response from backend at ${BACKEND_BASE}`);
+      else setMessage(err.message);
+    } finally {
+      setLoading(false);
     }
-    return result;
   };
 
-  const addPoints = () => {
-    const gameId = JSON.stringify(currGameId);
-    const secretKey = 'Z8yd9sfG9h1r3f9$jb0vXp!92mbR6hFz';
-    console.log(gameId);
-  
-    const encryptedGameId = CryptoJS.AES.encrypt(gameId, secretKey).toString();
-  
-    const email = localStorage.getItem('email');
-  
-    axios.post('https://mindsweeper-api.onrender.com/api/update-points', {
-      encryptedGameId,
-      email_id: email,  
-      points: 15
-    })
-    .then(response => {
-      console.log('Points updated successfully:', response.data);
-    })
-    .catch(err => {
-      console.error("Error updating points:", err);
+  const handleCellClick = (r, c) => {
+    if (!grid) return;
+    // push current grid into history (deep copy)
+    setHistory(prev => {
+      const next = [...prev];
+      next.push(cloneGrid(grid));
+      // keep history length reasonable
+      if (next.length > 100) next.shift();
+      return next;
+    });
+
+    // add move to moves list
+    setMoves(prev => [...prev, { r, c }] );
+
+    const newGrid = applyClick(grid, r, c);
+    setGrid(newGrid);
+
+    if (isAllZeros(newGrid)) {
+      onSolved(newGrid);
+    }
+  };
+
+  const undo = () => {
+    setMessage("");
+    setAwardedPoints(0);
+    setMoves(prev => {
+      // also remove last move
+      const p = [...prev];
+      if (p.length) p.pop();
+      return p;
+    });
+    setHistory(prev => {
+      const p = [...prev];
+      if (!p.length) return p;
+      const last = p.pop();
+      setGrid(last);
+      return p;
     });
   };
 
-  // Update the running result whenever selections change.
-  useEffect(() => {
-    if (!gameData) return;
-    const result = computeRunningResult();
-    setRunningResult(result);
-    const filledNumbersCount = selectedNumbers.filter((num) => num !== null).length;
-    const filledOperatorsCount = selectedOperators.filter((op) => op !== null).length;
-  
-    // The winning condition:
-    // - Moves (filled numbers) should be at least 3 and at most 6,
-    // - The running result equals the target, and
-    // - The difference (operands - operators) equals 1.
-    if (
-      filledNumbersCount >= 3 &&
-      filledNumbersCount <= 6 &&
-      result === gameData.target &&
-      (filledNumbersCount - filledOperatorsCount === 1)
-    ) {
-      setMessage(`🎉 Correct in ${filledNumbersCount} moves! 15 points added.`);
-      addPoints();
-      setScore((prev) => prev + 100);
-      setTimeout(() => {
-        fetchGameData();
-      }, 2000);
-    }
-    // If it’s the 6th move and either the result doesn't match or the slots difference isn't 1, reset
-    else if (filledNumbersCount === 6 && (result !== gameData.target || (filledNumbersCount - filledOperatorsCount !== 1))) {
-      setMessage("❌ Incorrect in 6 moves. Resetting game.");
-      setTimeout(() => {
-        resetGame();
-      }, 2000);
-    }
-  }, [selectedNumbers, selectedOperators, gameData]);
+  const onSolved = async (solvedGrid) => {
+    setMessage("You reached all zeros — verifying with server...");
+    setVerifying(true);
+    setAwardedPoints(0);
+    try {
+      const email = localStorage.getItem('email') || undefined;
+      // send moves for stronger server-side verification
+      const resp = await axios.post(`${BACKEND_BASE}/api/validate-game`, {
+        gameId,
+        grid: solvedGrid, // could send moves instead: moves
+        moves,             // we send moves as well for server replay verification
+        email
+      }, { timeout: 8000 });
 
-  // Determine the moves count (number of filled number slots)
-  const movesCount = selectedNumbers.filter((num) => num !== null).length;
-  // Determine the color for the running result
-  const runningResultColor =
-    runningResult === gameData?.target
-      ? "green"
-      : runningResult !== null && Math.abs(runningResult - gameData.target) <= 10
-      ? "orange"
-      : "red";
+      if (resp.data && resp.data.validGame && resp.data.solved) {
+        setMessage(resp.data.message || "Solved! Points awarded.");
+        if (resp.data.awardedPoints) {
+          setAwardedPoints(resp.data.awardedPoints);
+        }
+        // If server returned newGame, load it automatically
+        if (resp.data.newGame && resp.data.newGame.grid) {
+          // small delay so user sees success before new puzzle
+          setTimeout(() => {
+            setGrid(resp.data.newGame.grid);
+            setGameId(resp.data.newGame.gameId || null);
+            setHistory([]);
+            setMoves([]);
+            setMessage("New puzzle loaded. Good luck!");
+            setAwardedPoints(0);
+          }, 1100);
+        } else {
+          // if no newGame, just fetch a new one
+          setTimeout(fetchGame, 1200);
+        }
+      } else if (resp.data && resp.data.validGame && !resp.data.solved) {
+        setMessage("Server says not solved (unexpected).");
+      } else {
+        setMessage(resp.data?.message || "Server rejected the solution.");
+      }
+    } catch (err) {
+      console.error("Validation error:", err);
+      if (err.response) setMessage(`Validation server error: ${err.response.status}`);
+      else if (err.request) setMessage(`No response from backend when validating`);
+      else setMessage(err.message);
+    } finally {
+      setVerifying(false);
+    }
+  };
 
-  if (loading)
-    return <Typography variant="h5">Loading game data...</Typography>;
-  if (error)
-    return (
-      <Typography variant="h5" color="error">
-        {error}
-      </Typography>
-    );
+  // manual check (button)
+  const manualCheck = async () => {
+    if (!grid) return;
+    if (isAllZeros(grid)) {
+      await onSolved(grid);
+    } else {
+      setMessage("Not solved yet.");
+    }
+  };
+
+  if (loading) return <Typography>Loading puzzle…</Typography>;
+  if (!grid) return <Typography color="error">No puzzle loaded. {message}</Typography>;
+
+  // UI colors based on cell value
+  const cellBg = (val) => val === 0 ? 'linear-gradient(180deg,#e6fffa,#b2f5ea)' : val === 1 ? 'linear-gradient(180deg,#fff7ed,#ffe8cc)' : 'linear-gradient(180deg,#fff1f2,#ffd0d6)';
+  const cellShadow = (val) => val === 0 ? '0 6px 12px rgba(0,128,128,0.08)' : val === 1 ? '0 6px 12px rgba(255,140,0,0.08)' : '0 6px 12px rgba(220,20,60,0.08)';
 
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <Typography variant="h4" gutterBottom>
-        Target: {gameData.target}
-      </Typography>
-      <Typography variant="h6" color="primary">
-        Score: {score}
-      </Typography>
+    // Outer Box provides the background image + subtle overlay so content remains legible
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3,
+        // Use a semi-transparent gradient on top of the image for readability
+        backgroundImage: `linear-gradient(rgba(35, 34, 34, 0.8), rgba(35, 34, 34, 0.8)), url(${BACKGROUND_IMAGE})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <Paper elevation={6} sx={{ display: 'inline-block', p: 3, borderRadius: 3, backdropFilter: 'blur(4px)', backgroundColor: 'rgba(255,255,255,0.84)' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Click a cell to increment it and its orthogonal neighbors (0 → 1 → 2 → 0). Make all zeros to win.
+        </Typography>
 
-      {/* Cards Grid – card values are always visible */}
-      <Grid container spacing={2} justifyContent="center" style={{ marginTop: "20px" }}>
-        {gameData.numbers.map((card, index) => (
-          <Grid item key={index}>
-            <Card
-              onClick={() => handleCardClick(index)}
-              sx={{
-                width: 80,
-                height: 120,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: card.used ? "#ccc" : "#1976d2",
-                color: card.used ? "black" : "white",
-                fontSize: 24,
-                borderRadius: "8px",
-                boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                cursor: card.used ? "default" : "pointer",
-                border: "1px solid #ccc",
-              }}
-            >
-              <CardContent>{card.value}</CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Expression Slots: 6 number slots with 5 operator gaps in between */}
-      <Box display="flex" justifyContent="center" alignItems="center" mt={4}>
-        {selectedNumbers.map((num, index) => (
-          <React.Fragment key={index}>
-            <Box
-              onClick={() => handleSlotClick(index)}
-              sx={{
-                width: 60,
-                height: 60,
-                margin: "0 5px",
-                border: activeSlot === index ? "2px solid blue" : "2px dashed gray",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: num === null ? "pointer" : "default",
-              }}
-            >
-              <Typography variant="h5">{num !== null ? num : ""}</Typography>
-            </Box>
-            {index < selectedOperators.length && (
-              <Box
+        <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(3,72px)', justifyContent: 'center' }}>
+          {grid.map((row, r) =>
+            row.map((cell, c) => (
+              <Button
+                key={`${r}-${c}`}
+                onClick={() => handleCellClick(r, c)}
                 sx={{
-                  width: 40,
-                  height: 40,
-                  margin: "0 5px",
-                  border: "2px dashed gray",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  width: 72,
+                  height: 72,
+                  borderRadius: 2,
+                  fontSize: 22,
+                  fontWeight: 600,
+                  boxShadow: cellShadow(cell),
+                  background: cellBg(cell),
+                  transition: 'transform 140ms, box-shadow 140ms',
+                  '&:active': { transform: 'scale(0.97)' }
                 }}
               >
-                <Typography variant="h5">
-                  {selectedOperators[index] !== null ? selectedOperators[index] : ""}
-                </Typography>
-              </Box>
-            )}
-          </React.Fragment>
-        ))}
-      </Box>
+                {cell}
+              </Button>
+            ))
+          )}
+        </Box>
 
-      {/* Operator Buttons */}
-      <Box mt={2}>
-        {["+", "-", "*", "/"].map((op) => (
-          <Button
-            key={op}
-            variant="contained"
-            color="primary"
-            onClick={() => handleOperatorClick(op)}
-            sx={{ margin: "5px" }}
-          >
-            {op}
-          </Button>
-        ))}
-      </Box>
+        <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'center' }}>
+          <Button variant="outlined" onClick={undo} disabled={!history.length}>Undo</Button>
+          <Button variant="outlined" onClick={manualCheck} disabled={verifying}>Check</Button>
+          <Button variant="contained" color="secondary" onClick={fetchGame}>New Puzzle</Button>
+        </Box>
 
-      {/* Running result display */}
-      <Typography
-        variant="h6"
-        style={{
-          marginTop: "20px",
-          color: runningResult !== null ? runningResultColor : "black",
-        }}
-      >
-        Running Result: {runningResult !== null ? runningResult : "N/A"} (Moves: {movesCount})
-      </Typography>
-
-      {message && (
-        <Typography
-          variant="h6"
-          style={{
-            marginTop: "10px",
-            color: message.includes("Correct") ? "green" : "red",
-          }}
-        >
-          {message}
-        </Typography>
-      )}
-    </div>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2">Moves: {moves.length}</Typography>
+          <Typography variant="body2" color={awardedPoints ? 'success.main' : 'text.primary'} sx={{ mt: 1 }}>
+            {verifying ? 'Verifying...' : message}
+          </Typography>
+          {awardedPoints > 0 && (
+            <Typography variant="h6" color="success.main" sx={{ mt: 1 }}>
+              🎉 +{awardedPoints} points awarded!
+            </Typography>
+          )}
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 
-export default Game1;
-
-
-
-
+export default LightGridGame;

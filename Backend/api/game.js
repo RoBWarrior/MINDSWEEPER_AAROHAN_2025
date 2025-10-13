@@ -1,97 +1,217 @@
-const express = require("express");
-const mongoose = require("mongoose");
+const express = require('express');
 const router = express.Router();
-const Game = require("../models/Game");
+const { randomUUID } = require('crypto');
+const Game = require('../models/Game');
+const User = require('../models/User'); // your provided User model
 
-// Function to generate game data
-const generateGameData = (chosenLength) => {
-    let numbers = [];
-    for (let i = 0; i < chosenLength * 2; i++) {
-        numbers.push(Math.floor(Math.random() * 20) + 1);
+/**
+ * Helpers for 3x3 mod-3 Lights-out style:
+ */
+const cloneGrid = (g) => g.map((row) => row.slice());
+
+const applyToggleOnce = (grid, r, c) => {
+  const R = 3, C = 3;
+  const inc = (rr, cc) => {
+    if (rr >= 0 && rr < R && cc >= 0 && cc < C) {
+      grid[rr][cc] = (grid[rr][cc] + 1) % 3;
     }
-
-    let target = 0;
-    let operators = ["+", "-", "*", "/"];
-    let chosenNumbers = [];
-    let operatorPool = [];
-    let usedMultiplication = false;
-
-    // Select the first number
-    let j = Math.floor(Math.random() * numbers.length);
-    let number = numbers[j];
-    target += number;
-    chosenNumbers.push(number);
-    numbers.splice(j, 1);
-
-    // Ensure at least two numbers are used
-    chosenLength = Math.max(chosenLength, 2);
-
-    for (let i = 1; i < chosenLength; i++) {
-        if (numbers.length === 0) break;
-
-        let j = Math.floor(Math.random() * numbers.length);
-        let number = numbers[j];
-        let operator = operators[Math.floor(Math.random() * 4)];
-
-        if (usedMultiplication && operator === "*") {
-            operator = "-";
-        }
-
-        // Check if applying the operation keeps target in bounds
-        let newTarget = target;
-        if (operator === "+") newTarget += number;
-        else if (operator === "-") {
-            // If subtraction results in a negative target, use addition instead
-            if (newTarget - number < 0) {
-                operator = "+";
-                newTarget = newTarget + number; // Apply addition instead
-            } else {
-                newTarget -= number;
-            }
-        }
-        else if (operator === "*") {
-            newTarget *= number;
-            usedMultiplication = true;
-        }
-        else if (operator === "/") newTarget = Math.floor(newTarget/number);
-        else continue; // Skip invalid division cases
-
-        target = newTarget;
-        chosenNumbers.push(number);
-        operatorPool.push(operator);
-        numbers.splice(j, 1);
-    }
-
-    numbers.push(...chosenNumbers);
-    numbers.sort();
-
-    return { target, numbers, chosenNumbers, operatorPool };
+  };
+  inc(r, c);
+  inc(r - 1, c);
+  inc(r + 1, c);
+  inc(r, c - 1);
+  inc(r, c + 1);
 };
 
-// Route to generate and store game data
-router.get("/generate-game", async (req, res) => {
-    try {
-        let chosenLength = parseInt(req.query.length) || 2;
-        let gameData = generateGameData(chosenLength);
-
-        // Generate a unique game ID
-        const game = new Game({
-            id: Math.floor(Math.random() * 1000000), // Generate a random game ID
-            target: gameData.target,
-            numbers: gameData.numbers,
-            chosenNumbers: gameData.chosenNumbers,
-            operatorPool: gameData.operatorPool
-        });
-
-        // Save to MongoDB
-        const savedGame = await game.save();
-
-        // Send response with the stored game details
-        res.json({ gameId: savedGame.id, ...gameData });
-    } catch (error) {
-        console.error("Error generating game:", error);
-        res.status(500).json({ error: "Internal server error" });
+const applyToggles = (grid, toggleCounts) => {
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      const times = ((toggleCounts[r][c] % 3) + 3) % 3;
+      for (let t = 0; t < times; t++) {
+        applyToggleOnce(grid, r, c);
+      }
     }
+  }
+};
+
+/**
+ * generatePuzzle()
+ * - builds a puzzle by applying random toggles to zero grid (so it's solvable)
+ * - returns object with initialGrid, solutionToggles, generateToggles
+ */
+const generatePuzzle = () => {
+  const zeroGrid = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ];
+
+  // random toggles used to create puzzle
+  const generateToggles = Array.from({ length: 3 }, () => Array(3).fill(0));
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      generateToggles[r][c] = Math.floor(Math.random() * 3); // 0,1,2
+    }
+  }
+
+  // apply generateToggles to zeroGrid to make puzzle
+  const initialGrid = cloneGrid(zeroGrid);
+  applyToggles(initialGrid, generateToggles);
+
+  // solution toggles: what's needed to undo generateToggles (i.e. -generateToggles mod 3)
+  const solutionToggles = Array.from({ length: 3 }, () => Array(3).fill(0));
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      solutionToggles[r][c] = (3 - (generateToggles[r][c] % 3)) % 3;
+    }
+  }
+
+  // verify applying solutionToggles to initialGrid yields all zeros
+  const checkGrid = cloneGrid(initialGrid);
+  applyToggles(checkGrid, solutionToggles);
+  const allZero = checkGrid.every(row => row.every(cell => cell === 0));
+  if (!allZero) {
+    // extremely unlikely, but guard: regenerate
+    return generatePuzzle();
+  }
+
+  return {
+    initialGrid,
+    solutionToggles,
+    generateToggles
+  };
+};
+
+// GET /api/generate-game
+router.get('/generate-game', async (req, res) => {
+  try {
+    const { initialGrid, solutionToggles, generateToggles } = generatePuzzle();
+    const gameId = typeof randomUUID === 'function'
+      ? randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,10)}`;
+
+    const gameDoc = new Game({
+      gameId,
+      initialGrid,
+      solutionToggles,
+      generateToggles,
+      createdAt: Date.now()
+    });
+
+    await gameDoc.save();
+
+    return res.json({ gameId, grid: initialGrid });
+  } catch (err) {
+    console.error('Error generating game:', err);
+    return res.status(500).json({ error: 'Failed to generate game' });
+  }
+});
+
+/**
+ * POST /api/validate-game
+ * Body:
+ *  - gameId (required)
+ *  - grid OR moves (one required)
+ *  - email (optional, used to credit points on existing User)
+ *
+ * If solved: awards points to existing User (if email provided and user exists),
+ * then generates and returns a new puzzle in the response.
+ */
+const POINTS_PER_WIN = 15;
+
+router.post('/validate-game', async (req, res) => {
+  try {
+    const { gameId, grid, moves, email } = req.body;
+    if (!gameId) {
+      return res.status(400).json({ validGame: false, solved: false, message: 'Missing gameId' });
+    }
+
+    const game = await Game.findOne({ gameId });
+    if (!game) {
+      return res.status(404).json({ validGame: false, solved: false, message: 'Game not found or expired' });
+    }
+
+    // determine finalGrid by replaying moves or using provided grid
+    let finalGrid;
+    if (Array.isArray(grid)) {
+      if (grid.length !== 3 || grid.some(r => !Array.isArray(r) || r.length !== 3)) {
+        return res.status(400).json({ validGame: false, solved: false, message: 'Invalid grid format' });
+      }
+      finalGrid = grid.map(row => row.map(cell => Number(cell) % 3));
+    } else if (Array.isArray(moves)) {
+      finalGrid = cloneGrid(game.initialGrid);
+      for (const mv of moves) {
+        if (typeof mv !== 'object' || typeof mv.r !== 'number' || typeof mv.c !== 'number') {
+          return res.status(400).json({ validGame: false, solved: false, message: 'Invalid move format' });
+        }
+        applyToggleOnce(finalGrid, mv.r, mv.c);
+      }
+    } else {
+      return res.status(400).json({ validGame: false, solved: false, message: 'Provide either grid or moves' });
+    }
+
+    // normalize & validate cell values
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        finalGrid[r][c] = ((Number(finalGrid[r][c]) % 3) + 3) % 3;
+        if (![0,1,2].includes(finalGrid[r][c])) {
+          return res.status(400).json({ validGame: false, solved: false, message: 'Invalid cell values' });
+        }
+      }
+    }
+
+    const solved = finalGrid.every(row => row.every(cell => cell === 0));
+    if (!solved) {
+      return res.json({ validGame: true, solved: false, message: 'Grid is not all zeros' });
+    }
+
+    // solved -> award points if email provided and user exists
+    let awardedPoints = 0;
+    let newTotalPoints = null;
+    if (email && typeof email === 'string' && email.trim()) {
+      // increment existing user's points; do NOT auto-create user
+      const updatedUser = await User.findOneAndUpdate(
+        { email },
+        { $inc: { points: POINTS_PER_WIN } },
+        { new: true }
+      );
+      if (updatedUser) {
+        awardedPoints = POINTS_PER_WIN;
+        newTotalPoints = updatedUser.points;
+      } else {
+        // user not found — no points awarded
+        awardedPoints = 0;
+      }
+    }
+
+    // generate new puzzle to return to client
+    const { initialGrid: newGrid, solutionToggles: newSol, generateToggles: newGen } = generatePuzzle();
+    const newGameId = typeof randomUUID === 'function'
+      ? randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,10)}`;
+
+    const newGameDoc = new Game({
+      gameId: newGameId,
+      initialGrid: newGrid,
+      solutionToggles: newSol,
+      generateToggles: newGen,
+      createdAt: Date.now()
+    });
+    await newGameDoc.save();
+
+    return res.json({
+      validGame: true,
+      solved: true,
+      message: awardedPoints > 0 ? `Solved! ${awardedPoints} points awarded.` : 'Solved!',
+      awardedPoints,
+      newTotalPoints,
+      newGame: { gameId: newGameId, grid: newGrid }
+    });
+
+  } catch (err) {
+    console.error('Error validating game:', err);
+    return res.status(500).json({ validGame: false, solved: false, message: 'Server error' });
+  }
 });
 
 module.exports = router;
