@@ -21,7 +21,7 @@ const Leaderboard = () => {
 
   // ----- Fetch Leaderboard Data -----
   const getLeaderBoard = () => {
-    fetch(`https://mindsweeper-api.onrender.com/api/leaderboard`)
+    fetch(`http://localhost:5000/api/leaderboard`)
       .then((response) => response.json())
       .then((data) => {
         // Expect data.leaderboard to be an array of { username, points }
