@@ -1,22 +1,32 @@
-import React, { useState, useContext } from "react"; 
-import { 
-  AppBar, Toolbar, Typography, Button, IconButton, Menu, MenuItem 
+import React, { useState, useContext } from "react";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Menu,
+  MenuItem,
+  Button,
+  Typography,
 } from "@mui/material";
-import { 
-  Psychology, Leaderboard, Login, Logout, Menu as MenuIcon, 
-  MenuBook
+import {
+  Psychology,
+  Leaderboard,
+  Login,
+  Logout,
+  Menu as MenuIcon,
+  MenuBook,
 } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { AuthContext } from "../AuthContext"; 
+import { AuthContext } from "../AuthContext";
+import "./Navbar.css";
 
 const Navbar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
-
   const { isLoggedIn, logout } = useContext(AuthContext);
 
   const handleLogout = () => {
@@ -25,133 +35,115 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar 
-      position="static" 
-      sx={{ background: "linear-gradient(to right, #240797ff, #810365ff)" }}
-    >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* App Title / Logo */}
-        <Typography 
-          variant="h5" 
-          component={Link} 
-          to="/" 
-          sx={{ 
-            textDecoration: "none", 
-            color: "#e86d03ff", 
-            fontWeight: "bold", 
-            display: "flex", 
-            alignItems: "center",
-            fontFamily: "cursive",
-            gap: 1
-          }}
+    <AppBar position="sticky" className="bg-gradient-to-r from-indigo-900 via-purple-700 to-cyan-500 backdrop-blur-md shadow-lg">
+      <Toolbar className="flex justify-between items-center px-4 md:px-10">
+       
+        <Typography
+          component={Link}
+          to="/"
+          variant="h5"
+          className="neon-text flex items-center gap-2 font-bold text-cyan-400 hover:text-fuchsia-400 transition-colors"
+          style={{ textDecoration: "none", fontFamily: "Orbitron, sans-serif" }}
         >
           <Psychology fontSize="large" />
           MindSweeper
         </Typography>
 
-        {/* Mobile View: Hamburger Menu */}
         {isMobile ? (
           <>
-            <IconButton 
-              edge="end" 
-              color="inherit" 
-              onClick={(e) => setAnchorEl(e.currentTarget)}
-            >
-              <MenuIcon />
+            <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
+              <MenuIcon className="text-cyan-400 hover:text-fuchsia-400 transition-colors" />
             </IconButton>
-            <Menu 
-              anchorEl={anchorEl} 
-              open={Boolean(anchorEl)} 
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
               onClose={() => setAnchorEl(null)}
-              sx={{ "& .MuiPaper-root": { background: "linear-gradient(to right, #240797ff, #810365ff)", color: "white" } }}
+              sx={{
+                "& .MuiPaper-root": {
+                  background: "rgba(20, 20, 35, 0.9)",
+                  color: "white",
+                  backdropFilter: "blur(12px)",
+                },
+              }}
             >
-              {/* Leaderboard */}
-              <MenuItem 
-                component={Link} 
-                to="/leaderboard" 
+              <MenuItem
+                component={Link}
+                to="/leaderboard"
                 onClick={() => setAnchorEl(null)}
-                sx={{fontFamily : "cursive"}}
+                className="font-cursive nav-link"
               >
-                <Leaderboard sx={{ mr: 1 }} /> 
-                Leaderboard
+                <Leaderboard sx={{ mr: 1 }} /> Leaderboard
               </MenuItem>
-
-              {/* Rules - NEW */}
-              <MenuItem 
-                component={Link} 
-                to="/rules" 
+              <MenuItem
+                component={Link}
+                to="/rules"
                 onClick={() => setAnchorEl(null)}
-                sx={{fontFamily : "cursive"}}
+                className="font-cursive nav-link"
               >
-                <MenuBook sx={{ mr: 1 }} /> 
-                Rules
+                <MenuBook sx={{ mr: 1 }} /> Rules
               </MenuItem>
-
-              {/* Login/Logout */}
               {isLoggedIn ? (
                 <MenuItem
                   onClick={() => {
                     handleLogout();
                     setAnchorEl(null);
                   }}
-                  sx={{fontFamily : "cursive"}}
+                  className="font-cursive nav-link"
                 >
-                  <Logout sx={{ mr: 1 }} /> 
-                  Logout
+                  <Logout sx={{ mr: 1 }} /> Logout
                 </MenuItem>
               ) : (
-                <MenuItem 
-                  component={Link} 
-                  to="/login" 
+                <MenuItem
+                  component={Link}
+                  to="/login"
                   onClick={() => setAnchorEl(null)}
-                  sx={{fontFamily : "cursive"}}
+                  className="font-cursive nav-link"
                 >
-                  <Login sx={{ mr: 1 }} /> 
-                  Login
+                  <Login sx={{ mr: 1 }} /> Login
                 </MenuItem>
               )}
             </Menu>
           </>
         ) : (
-          /* Desktop View: Buttons in the Toolbar */
-          <div>
-            <Button 
-              component={Link} 
-              to="/leaderboard" 
-              color="inherit" 
+          <div className="flex items-center gap-6">
+            <Button
+              component={Link}
+              to="/leaderboard"
+              color="inherit"
               startIcon={<Leaderboard />}
-              sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
+              className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
+              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
             >
               Leaderboard
             </Button>
-
-            {/* Rules - NEW */}
             <Button
               component={Link}
               to="/rules"
               color="inherit"
               startIcon={<MenuBook />}
-              sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
+              className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
+              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
             >
               Rules
             </Button>
-
             {isLoggedIn ? (
-              <Button 
-                onClick={handleLogout} 
-                color="inherit" 
+              <Button
+                onClick={handleLogout}
+                color="inherit"
                 startIcon={<Logout />}
-                sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
+                className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
+                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
               >
                 Logout
               </Button>
             ) : (
-              <Button 
-                component={Link} 
-                to="/login" 
-                color="inherit" 
+              <Button
+                component={Link}
+                to="/login"
+                color="inherit"
                 startIcon={<Login />}
-                sx={{ textTransform: "none", fontSize: "20px", fontFamily: "cursive" }}
+                className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
+                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
               >
                 Login
               </Button>

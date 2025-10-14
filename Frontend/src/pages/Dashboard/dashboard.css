@@ -1,22 +1,176 @@
-.dashboard{
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* futuristic background, neon glows, and small particle animations */
+/* keep this file imported in Dashboard.jsx */
+
+:root {
+  --neon: 135deg, rgba(120, 70, 255, 0.16), rgba(0, 212, 255, 0.06);
 }
-.typewriter h1 {
-    display: inline-block; 
-    overflow: hidden; 
-    white-space: nowrap; 
-    border-right: 0.15em solid orange;
-    animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
-  }
-  
-  @keyframes typing {
-    from { width: 0 }
-    to { width: 100% }
-  }
-  
-  @keyframes blink-caret {
-    from, to { border-color: transparent }
-    50% { border-color: orange; }
-  }
+
+/* page background */
+.dashboard.bg-futuristic {
+  position: relative;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(88, 40, 255, 0.12), transparent 8%),
+              radial-gradient(900px 450px at 90% 80%, rgba(0, 200, 255, 0.08), transparent 12%),
+              linear-gradient(180deg, #040405 0%, #050507 40%, #020202 100%);
+  overflow: hidden;
+}
+
+/* animated layers */
+.bg-layers {
+  position: absolute;
+  inset: -20%;
+  background:
+    conic-gradient(from 120deg at 10% 20%, rgba(255, 0, 150, 0.03), rgba(0, 205, 255, 0.02)),
+    radial-gradient(circle at 30% 70%, rgba(30, 10, 60, 0.18), transparent 10%),
+    radial-gradient(circle at 80% 20%, rgba(12, 25, 50, 0.12), transparent 6%);
+  animation: rotateLayers 40s linear infinite;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+/* particles (floating orbs) */
+.particles .p1,
+.particles .p2,
+.particles .p3,
+.particles .p4,
+.particles .p5 {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  filter: blur(8px);
+  opacity: 0.22;
+  mix-blend-mode: screen;
+  background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.03));
+  animation: float 8s ease-in-out infinite;
+}
+
+.particles .p1 { left: 8%; top: 30%; transform: scale(2); animation-duration: 16s; }
+.particles .p2 { left: 85%; top: 80%; transform: scale(1.8); animation-duration: 14s; }
+.particles .p3 { left: 50%; top: 10%; transform: scale(1.3); animation-duration: 12s; }
+.particles .p4 { left: 30%; top: 80%; transform: scale(1.5); animation-duration: 11s; }
+.particles .p5 { left: 70%; top: 40%; transform: scale(2.2); animation-duration: 18s; }
+
+/* card neon border + glass effect */
+.card {
+  background-blend-mode: overlay;
+  transition: transform 0.45s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  transform-style: preserve-3d;
+}
+
+/* neon rim using pseudo-element */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(88,40,255,0.9), rgba(0,212,255,0.6));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.08;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+  box-shadow: 0 0 40px rgba(88,40,255,0.06), inset 0 0 18px rgba(255,255,255,0.02);
+}
+
+/* intense neon on hover */
+.card.group:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+.card.group:hover::before {
+  opacity: 0.35;
+  filter: blur(6px);
+  box-shadow: 0 0 40px rgba(88,40,255,0.18), inset 0 0 30px rgba(0, 200, 255, 0.03);
+}
+
+/* title glow */
+.neon-title {
+  position: relative;
+  color: #eae6ff;
+  text-shadow: 0 2px 12px rgba(88,40,255,0.18), 0 1px 2px rgba(0,0,0,0.6);
+}
+.neon-title::after {
+  content: "";
+  display: block;
+  width: 220px;
+  height: 6px;
+  margin: 10px auto 0;
+  background: linear-gradient(90deg, rgba(88,40,255,0.9), rgba(0,212,255,0.8));
+  filter: blur(10px);
+  opacity: 0.7;
+  border-radius: 999px;
+  transform: scaleX(0.95);
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* play button neon */
+.play-btn {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 30px rgba(88,40,255,0.06);
+  transition: box-shadow 0.25s, transform 0.2s;
+  outline: none;
+}
+
+.play-btn:hover {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 30px rgba(0,255,220,0.12);
+  transform: translateY(-4px) scale(1.08);
+}
+
+/* play icon color and subtle animate */
+.play-icon {
+  color: #e6faff;
+  filter: drop-shadow(0 3px 8px rgba(0,220,255,0.12));
+  transition: transform 0.15s;
+}
+.play-btn:active .play-icon {
+  transform: scale(0.95);
+}
+
+/* shimmer bar */
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+  transform: translateY(30%);
+  opacity: 0.5;
+  animation: shimmer 3s linear infinite;
+}
+
+/* small ghost button */
+.ghost-btn {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
+
+/* Animations */
+@keyframes rotateLayers {
+  from { transform: rotate(0deg) scale(1); }
+  to { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0) scale(var(--s,1)); opacity: 0.22; }
+  50% { transform: translateY(-18px) scale(calc(var(--s,1) * 1.02)); opacity: 0.5; }
+  100% { transform: translateY(0) scale(var(--s,1)); opacity: 0.22; }
+}
+
+@keyframes glowPulse {
+  0% { transform: scaleX(0.95); opacity: 0.7; }
+  50% { transform: scaleX(1.05); opacity: 1; }
+  100% { transform: scaleX(0.95); opacity: 0.7; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-120%); opacity: 0.15; }
+  50% { transform: translateX(0%); opacity: 0.35; }
+  100% { transform: translateX(120%); opacity: 0.15; }
+}
+
+/* Responsive tweaks */
+@media (max-width: 640px) {
+  .card { height: 18rem; border-radius: 14px; }
+  .play-btn { width: 56px; height: 56px; }
+  .neon-title::after { width: 160px; }
+}
