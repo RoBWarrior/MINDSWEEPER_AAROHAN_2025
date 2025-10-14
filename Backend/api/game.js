@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { randomUUID } = require('crypto');
 const Game = require('../models/Game');
-const User = require('../models/User'); // your provided User model
+const User = require('../models/User'); 
 
 /**
  * Helpers for 3x3 mod-3 Lights-out style:
