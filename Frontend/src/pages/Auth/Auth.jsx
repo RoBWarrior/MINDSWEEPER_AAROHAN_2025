@@ -23,8 +23,8 @@ const AuthForm = () => {
     }
 
     const endpoint = isSignUp
-      ? "https://mindsweeper-api.onrender.com/api/auth/signup"
-      : "https://mindsweeper-api.onrender.com/api/auth/login";
+      ? "http://localhost:5000/api/auth/signup"
+      : "http://localhost:5000/api/auth/login";
 
     try {
       const response = await fetch(endpoint, {
