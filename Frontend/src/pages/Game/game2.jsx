@@ -482,7 +482,6 @@
 
 
 
-
 // src/components/Game2.jsx
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
@@ -492,7 +491,7 @@ const BACKEND_BASE = 'http://localhost:5000';
 
 // Keep ~50% of server prefilled to make hints more evident
 const PREFILL_RATIO = 0.5;
-// fixed cell size (px) — removed zoom/fit controls per request
+// fixed cell size (px)
 const CELL_SIZE = 48;
 
 export default function Game2() {
@@ -721,7 +720,7 @@ export default function Game2() {
     display: 'grid',
     gridTemplateColumns: `repeat(${cols}, ${CELL_SIZE}px)`,
     gap: 8,
-    justifyContent: 'start'
+    justifyContent: 'center' // center the grid columns
   };
 
   // map status to colors (editable cells)
@@ -737,19 +736,31 @@ export default function Game2() {
       fontFamily: 'sans-serif',
       maxHeight: '86vh',
       overflowY: 'auto',
-      boxSizing: 'border-box'
-    }}>
-      <h2 style={{ color: '#111', margin: 0, marginBottom: 12 }}>Arithmetic Crossword</h2>
+      boxSizing: 'border-box',
 
-      <div style={{ marginBottom: 8, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      // center everything horizontally
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }}>
+      <h2 style={{ color: '#111', margin: 0, marginBottom: 12, textAlign: 'center', color: "white" }}>Arithmetic Crossword</h2>
+
+      <div style={{
+        marginBottom: 8,
+        display: 'flex',
+        gap: 8,
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'center', // center controls
+      }}>
         <div>
-          <button onClick={submitCrossword} disabled={verifying} style={{ marginRight: 8 }}>Submit</button>
-          <button onClick={() => fetchNewCrossword()} style={{ marginRight: 8 }}>New Crossword</button>
-          <button onClick={() => fetchNewCrossword(0)} style={{ marginRight: 8 }}>No Prefill</button>
+          <button onClick={submitCrossword} disabled={verifying} style={{ marginRight: 8, color : "white", backgroundColor : "green", padding: "8px", borderRadius : "8px" }}>Submit</button>
+          <button onClick={() => fetchNewCrossword()} style={{ marginRight: 8, color : "white", backgroundColor : "purple", padding: "8px", borderRadius : "8px" }}>New Crossword</button>
+          {/* <button onClick={() => fetchNewCrossword(0)} style={{ marginRight: 8 }}>No Prefill</button> */}
         </div>
       </div>
 
-      <div style={{ marginBottom: 12, color: '#333' }}>
+      <div style={{ marginBottom: 12, color: '#08fc1cff', textAlign: 'center' }}>
         <small>Tip: after Submit editable cells will get colored: green = correct, yellow = near (±1), red = wrong.</small>
       </div>
 
@@ -761,6 +772,10 @@ export default function Game2() {
         border: '1px solid rgba(0,0,0,0.08)',
         borderRadius: 8,
         background: '#ffffff',
+
+        // center the inner grid wrapper
+        display: 'flex',
+        justifyContent: 'center'
       }}>
         <div style={gridStyle}>
           {grid.map((row, r) =>
@@ -829,7 +844,7 @@ export default function Game2() {
         </div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
+      <div style={{ marginTop: 12, textAlign: 'center' }}>
         {feedback && <div style={{ color: '#0f5132', fontWeight: 500 }}>{feedback}</div>}
         {pointsAwarded > 0 && <div style={{ marginTop: 8, color: 'green', fontWeight: 600 }}>🎉 +{pointsAwarded} points!</div>}
       </div>
