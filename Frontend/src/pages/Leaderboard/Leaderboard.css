@@ -1,0 +1,59 @@
+@font-face {
+    font-family: 'myFont';
+    src: url(/assets/digital-7.ttf); 
+  }
+  body{
+    overflow: hidden;
+  }
+  .leaderboardHeader {
+   position: relative;
+   color: #73efd5; 
+   font-family: myFont;
+   font-size: clamp(25px, 6vw, 48px); 
+   font-weight: 600;
+   text-align: center;
+   margin-bottom: 1.5rem;
+   animation: flicker 6s infinite, forward-glitch 3s linear infinite;
+   letter-spacing: 2px;
+   
+  }
+  
+
+  
+  .leaderboardItems {
+    min-height: calc(60vh - 120px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    min-height: calc(100vh - 144px);
+    z-index: 1;
+    position: relative;
+   
+  }
+  .leaderboard-container {
+    height: 100vh;
+    overflow-y: auto; 
+  }
+  
+  body {
+    
+    color: #fff;
+    background-attachment: fixed;
+    font-family: "space", cursive;
+    font-optical-sizing: auto;
+    font-weight: 200;
+    font-style: normal;
+  }
+  
+  
+  @media (max-width: 800px) {
+    .leaderboardHeader{
+      font-size: 1.2 vw;
+      margin-bottom: 40px;
+    }
+  
+  
+  }
+  
+  
