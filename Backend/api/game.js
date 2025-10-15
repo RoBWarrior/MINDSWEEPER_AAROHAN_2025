@@ -117,7 +117,7 @@ router.get('/generate-game', async (req, res) => {
  * If solved: awards points to existing User (if email provided and user exists),
  * then generates and returns a new puzzle in the response.
  */
-const POINTS_PER_WIN = 15;
+const POINTS_PER_WIN = 75;
 
 router.post('/validate-game', async (req, res) => {
   try {
