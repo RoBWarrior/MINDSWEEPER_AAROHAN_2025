@@ -23,7 +23,6 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.1.1",
-    "react-loader-spinner": "^6.1.6",
     "react-router-dom": "^7.3.0",
     "react-tsparticles": "^2.12.2",
     "tsparticles": "^3.9.1"
