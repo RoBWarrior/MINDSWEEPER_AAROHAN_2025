@@ -311,7 +311,7 @@ router.post('/validate-graph', async (req, res) => {
 
     return res.json({
       valid: false,
-      message: `Found ${badEdges.length} invalid edges (duplicate or non-positive differences).`,
+      message: `Found ${badEdges.length} invalid edges (duplicate differences).`,
       badEdges
     });
   } catch (err) {
