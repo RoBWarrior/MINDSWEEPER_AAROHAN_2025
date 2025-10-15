@@ -1,11 +1,8 @@
-/* futuristic background, neon glows, and small particle animations */
-/* keep this file imported in Dashboard.jsx */
 
 :root {
   --neon: 135deg, rgba(120, 70, 255, 0.16), rgba(0, 212, 255, 0.06);
 }
 
-/* page background */
 .dashboard.bg-futuristic {
   position: relative;
   background: radial-gradient(1200px 600px at 10% 10%, rgba(88, 40, 255, 0.12), transparent 8%),
@@ -14,7 +11,6 @@
   overflow: hidden;
 }
 
-/* animated layers */
 .bg-layers {
   position: absolute;
   inset: -20%;
@@ -27,7 +23,6 @@
   transform-origin: center;
 }
 
-/* particles (floating orbs) */
 .particles .p1,
 .particles .p2,
 .particles .p3,
@@ -50,15 +45,12 @@
 .particles .p4 { left: 30%; top: 80%; transform: scale(1.5); animation-duration: 11s; }
 .particles .p5 { left: 70%; top: 40%; transform: scale(2.2); animation-duration: 18s; }
 
-/* card neon border + glass effect */
 .card {
   background-blend-mode: overlay;
   transition: transform 0.45s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s;
   box-shadow: 0 10px 40px rgba(0,0,0,0.7);
   transform-style: preserve-3d;
 }
-
-/* neon rim using pseudo-element */
 .card::before {
   content: "";
   position: absolute;
@@ -173,4 +165,45 @@
   .card { height: 18rem; border-radius: 14px; }
   .play-btn { width: 56px; height: 56px; }
   .neon-title::after { width: 160px; }
+}
+
+/* glow-border-wrapper draws a gradient ring around the inner card only */
+.glow-border-wrapper {
+  position: relative;
+  /* provide a tiny gap for the ring to show */
+  padding: 4px;
+  border-radius: 14px; /* match inner .card-inner radius */
+  /* ensure the glow lies behind the card content */
+  z-index: 0;
+}
+
+.glow-border-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;                 /* cover wrapper */
+  border-radius: inherit;   /* same radius */
+  padding: 3px;             
+  background: linear-gradient(90deg, rgba(0,255,240,0.95), rgba(120,64,255,0.9), rgba(0,170,255,0.9));
+
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(10px);
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: -1; 
+  transition: filter 350ms ease, opacity 350ms ease, transform 350ms ease;
+}
+
+.glow-border-wrapper:hover::before {
+  filter: blur(14px) saturate(1.15) drop-shadow(0 0 12px rgba(120,64,255,0.5));
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.card-inner { position: relative; z-index: 10; }
+
+@media (max-width: 640px) {
+  .glow-border-wrapper { padding: 3px; border-radius: 12px; }
+  .glow-border-wrapper::before { padding: 2.5px; filter: blur(8px); }
 }

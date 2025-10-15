@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import bg from "../../../public/assets/game2main.jpg"
 
 const LOCAL_STORAGE_KEY = 'arithmetic-crossword';
 const BACKEND_BASE = 'http://localhost:5000';
@@ -245,126 +246,152 @@ export default function Game2() {
     wrong: '#f8d7da'    // red
   };
 
-  return (
+ return (
+  <div style={{
+   padding: 18,
+  fontFamily: 'sans-serif',
+  minHeight: '100vh',            
+  boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+
+  backgroundImage: `linear-gradient(rgba(35,34,34,0.6), rgba(35,34,34,0.6)), url(${bg})`,
+  backgroundSize: 'cover',       
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  backgroundAttachment: 'fixed'
+  }}>
+    <h2 style={{ margin: 0, marginBottom: 12, textAlign: 'center', color: "white" }}>Arithmetic Crossword</h2>
+
     <div style={{
-      padding: 18,
-      fontFamily: 'sans-serif',
-      maxHeight: '86vh',
-      overflowY: 'auto',
-      boxSizing: 'border-box',
-
-      // center everything horizontally
+      marginBottom: 8,
       display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
+      gap: 8,
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      justifyContent: 'center', // center controls
     }}>
-      <h2 style={{ color: '#111', margin: 0, marginBottom: 12, textAlign: 'center', color: "white" }}>Arithmetic Crossword</h2>
-
-      <div style={{
-        marginBottom: 8,
-        display: 'flex',
-        gap: 8,
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'center', // center controls
-      }}>
-        <div>
-          <button onClick={submitCrossword} disabled={verifying} style={{ marginRight: 8, color : "white", backgroundColor : "green", padding: "8px", borderRadius : "8px" }}>Submit</button>
-          <button onClick={() => fetchNewCrossword()} style={{ marginRight: 8, color : "white", backgroundColor : "purple", padding: "8px", borderRadius : "8px" }}>New Crossword</button>
-          {/* <button onClick={() => fetchNewCrossword(0)} style={{ marginRight: 8 }}>No Prefill</button> */}
-        </div>
+      <div>
+        <button onClick={submitCrossword} disabled={verifying} style={{ marginRight: 8, color : "white", backgroundColor : "green", padding: "8px", borderRadius : "8px" }}>Submit</button>
+        <button onClick={() => fetchNewCrossword()} style={{ marginRight: 8, color : "white", backgroundColor : "purple", padding: "8px", borderRadius : "8px" }}>New Crossword</button>
       </div>
+    </div>
 
-      <div style={{ marginBottom: 12, color: '#08fc1cff', textAlign: 'center' }}>
-        <small>Tip: after Submit editable cells will get colored: green = correct, yellow = near (±1), red = wrong.</small>
-      </div>
+    <div style={{ marginBottom: 12, color: '#08fc1cff', textAlign: 'center' }}>
+      <small>Tip: after Submit editable cells will get colored: green = correct, yellow = near (±1), red = wrong.</small>
+    </div>
 
-      <div ref={gridWrapperRef} style={{
-        overflow: 'auto',
-        maxHeight: '70vh',
-        maxWidth: '100%',
-        padding: 8,
-        border: '1px solid rgba(0,0,0,0.08)',
-        borderRadius: 8,
-        background: '#ffffff',
+    {/* Grid wrapper: allow horizontal scrolling; center grid when it fits */}
+    {/* Grid wrapper */}
+<div ref={gridWrapperRef} style={{
+  overflowX: 'auto',
+  overflowY: 'auto',
+  maxHeight: '60vh',
+  maxWidth: '100%',
+  padding: 8,
+  border: '1px solid rgba(0,0,0,0.08)',
+  borderRadius: 8,
 
-        // center the inner grid wrapper
-        display: 'flex',
-        justifyContent: 'center'
-      }}>
-        <div style={gridStyle}>
-          {grid.map((row, r) =>
-            row.map((cell, c) => {
-              if (cell === ' ') {
-                return <div key={`${r}-${c}`} style={{ width: CELL_SIZE, height: CELL_SIZE, backgroundColor: '#000', borderRadius: 6 }} />;
-              }
+  // Allow the background to show through:
+  background: 'rgba(255,255,255,0.88)', // slightly translucent white
+  // OR use transparent if you don't want any white block:
+  // background: 'transparent',
 
-              const pre = isPrefilled(r, c);
-              const operator = isOperatorCell(r, c);
-              const editable = isEditable(r, c);
-              const status = cellStatus?.[r]?.[c];
+  textAlign: 'center',
+  boxSizing: 'border-box',
+  whiteSpace: 'nowrap'
+}}>
 
-              const bgColorEditable = status ? statusBg[status] : '#fff8dc';
-              const bgColor = pre ? '#cfe2ff' : (operator ? '#f1f3f5' : bgColorEditable);
+      {/* Inner grid: inline-grid so it centers when it fits, but remains scrollable when wider */}
+      <div
+        style={{
+          display: 'inline-grid',
+          gridTemplateColumns: `repeat(${grid[0].length}, ${CELL_SIZE}px)`,
+          gap: 8,
+          padding: 8,
+          borderRadius: 8,
+          // ensure it's treated as intrinsic content so horizontal scrolling works properly
+          minWidth: 'max-content',
+          margin: '0 auto',
+          background: 'transparent',
+        }}
+      >
+        {grid.map((row, r) =>
+          row.map((cell, c) => {
+            if (cell === ' ') {
+              return <div key={`${r}-${c}`} style={{ width: CELL_SIZE, height: CELL_SIZE, backgroundColor: '#000', borderRadius: 6 }} />;
+            }
 
-              if (pre || operator) {
-                return (
-                  <div key={`${r}-${c}`} style={{
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
-                    border: pre ? '2px solid #0d6efd' : '1px solid #bbb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    backgroundColor: bgColor,
-                    color: pre ? '#012a4a' : '#000',
-                    fontSize: pre ? Math.max(14, Math.floor(CELL_SIZE * 0.42)) : Math.max(12, Math.floor(CELL_SIZE * 0.36)),
-                    borderRadius: 8,
-                    boxShadow: pre ? '0 2px 6px rgba(13,110,253,0.18)' : 'none',
-                    boxSizing: 'border-box'
-                  }}>
-                    {String(cell)}
-                  </div>
-                );
-              }
+            const pre = isPrefilled(r, c);
+            const operator = isOperatorCell(r, c);
+            const editable = isEditable(r, c);
+            const status = cellStatus?.[r]?.[c];
 
-              // editable cell
+            const bgColorEditable = status ? statusBg[status] : '#fff8dc';
+            const bgColor = pre ? '#cfe2ff' : (operator ? '#f1f3f5' : bgColorEditable);
+
+            if (pre || operator) {
               return (
-                <input key={`${r}-${c}`}
-                  value={userGrid[r][c] || ''}
-                  onChange={e => onChangeCell(r, c, e.target.value)}
-                  onKeyDown={onKeyDownCell}
-                  maxLength={1}
-                  inputMode="numeric"
-                  pattern="\d*"
-                  aria-label={`cell-${r}-${c}`}
-                  style={{
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
-                    textAlign: 'center',
-                    fontWeight: 700,
-                    fontSize: Math.max(12, Math.floor(CELL_SIZE * 0.38)),
-                    backgroundColor: bgColor,
-                    color: '#000',
-                    border: '1px solid #aaa',
-                    borderRadius: 8,
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
+                <div key={`${r}-${c}`} style={{
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  border: pre ? '2px solid #0d6efd' : '1px solid #bbb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  backgroundColor: bgColor,
+                  color: pre ? '#012a4a' : '#000',
+                  fontSize: pre ? Math.max(14, Math.floor(CELL_SIZE * 0.42)) : Math.max(12, Math.floor(CELL_SIZE * 0.36)),
+                  borderRadius: 8,
+                  boxShadow: pre ? '0 2px 6px rgba(13,110,253,0.18)' : 'none',
+                  boxSizing: 'border-box'
+                }}>
+                  {String(cell)}
+                </div>
               );
-            })
-          )}
-        </div>
-      </div>
+            }
 
-      <div style={{ marginTop: 12, textAlign: 'center' }}>
-        {feedback && <div style={{ color: '#0f5132', fontWeight: 500 }}>{feedback}</div>}
-        {pointsAwarded > 0 && <div style={{ marginTop: 8, color: 'green', fontWeight: 600 }}>🎉 +{pointsAwarded} points!</div>}
+            // editable cell
+            return (
+              <input key={`${r}-${c}`}
+                value={userGrid[r][c] || ''}
+                onChange={e => onChangeCell(r, c, e.target.value)}
+                onKeyDown={onKeyDownCell}
+                maxLength={1}
+                inputMode="numeric"
+                pattern="\d*"
+                aria-label={`cell-${r}-${c}`}
+                style={{
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  textAlign: 'center',
+                  fontWeight: 700,
+                  fontSize: Math.max(12, Math.floor(CELL_SIZE * 0.38)),
+                  backgroundColor: bgColor,
+                  color: '#000',
+                  border: '1px solid #aaa',
+                  borderRadius: 8,
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  // allow the input to shrink or grow properly inside grid cells
+                  minWidth: 0
+                }}
+              />
+            );
+          })
+        )}
       </div>
+    </div>
+
+    <div style={{ marginTop: 12, textAlign: 'center' }}>
+      {feedback && <div style={{ color: '#0f5132', fontWeight: 500 }}>{feedback}</div>}
+      {pointsAwarded > 0 && <div style={{ marginTop: 8, color: 'green', fontWeight: 600 }}>🎉 +{pointsAwarded} points!</div>}
+    </div>
 
       <div style={{ height: 40 }} />
-    </div>
-  );
+  </div>
+);
+
 }

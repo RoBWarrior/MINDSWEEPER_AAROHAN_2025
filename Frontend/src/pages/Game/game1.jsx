@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button, Typography, Grid, Box, Paper } from "@mui/material";
 import axios from "axios";
-import bg from "../../../public/assets/istockphoto-636705942-612x612.jpg"
+import bg from "../../../public/assets/game1main.jpg"
 
-/**
- * Backend URL selection:
- * - Vite: import.meta.env.VITE_API_URL
- * - CRA: process.env.REACT_APP_API_URL
- * - fallback: http://localhost:5000
- */
 const BACKEND_BASE = "http://localhost:5000";
 
-// Background image selection (Vite / CRA env var support + fallback)
 const BACKGROUND_IMAGE = bg;
 
 const cloneGrid = (g) => g.map((row) => row.slice());

@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { TailSpin } from "react-loader-spinner";
 import bg from "/assets/istockphoto-1328693155-612x612.jpg";
-// Remove or adjust these imports if not needed:
-// import "../../index.css";
-// import "./Leaderboard.css";
 
-const ITEMS_PER_PAGE = 5; // Number of items per page
+
+const ITEMS_PER_PAGE = 5; 
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -92,7 +90,7 @@ const Leaderboard = () => {
             marginBottom: "1.5rem",
             textTransform: "uppercase",
             letterSpacing: "2px",
-            fontFamily: "cursive"
+            
           }}
         >
           Leaderboard

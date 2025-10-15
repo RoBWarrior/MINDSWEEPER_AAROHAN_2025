@@ -3,19 +3,22 @@ import React from "react";
 const RulesPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white flex flex-col items-center px-6 sm:px-10 py-28 sm:py-32 mt-10 sm:mt-20">
+    
+      <br />
 
-     <div className="pt-11">
       <h1 className="text-4xl sm:text-4xl md:text-5xl font-extrabold mb-14 text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]">
          Game Rules
       </h1>
-      </div>
-
+    
+<br />
+<br />
       <div className="max-w-5xl w-full flex flex-col gap-14">
         {/* Game 1 Card */}
         <div className="relative group bg-[#0a0f1c]/70 border border-cyan-400/30 rounded-2xl p-8 sm:p-10 shadow-[0_0_25px_rgba(0,255,255,0.15)] hover:shadow-[0_0_40px_rgba(0,255,255,0.4)] transition-all duration-500 backdrop-blur-md mt-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-5 text-cyan-400">
+          <h2 className="text-2xl md:text-3xl font-bold mb-5 text-cyan-400 mt-5">
             Game 1: Grid Tap Puzzle
           </h2>
+          <br />
           <p className="leading-relaxed text-gray-300">
             You have a <span className="text-cyan-300 font-semibold">3×3 grid</span> of cells.  
             Each cell holds a number from <span className="text-blue-400">0, 1, or 2</span>.  
@@ -44,6 +47,7 @@ const RulesPage = () => {
           <h2 className="text-2xl md:text-3xl font-bold mb-5 text-purple-400">
              Game 2: Math Crossword Puzzle
           </h2>
+          <br />
           <p className="leading-relaxed text-gray-300">
             The puzzle looks like a <span className="text-purple-300 font-semibold">crossword grid</span>.  
             Each horizontal and vertical line forms an <span className="text-purple-300 font-semibold">equation</span>.  
@@ -66,8 +70,7 @@ const RulesPage = () => {
         </div>
       </div>
 
-      {/* Footer spacing */}
-      <div className="mt-20" />
+      <div className="mt-10" />
     </div>
   );
 };

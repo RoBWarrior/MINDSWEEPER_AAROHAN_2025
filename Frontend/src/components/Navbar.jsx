@@ -35,7 +35,16 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="sticky" className="bg-gradient-to-r from-indigo-900 via-purple-700 to-cyan-500 backdrop-blur-md shadow-lg">
+    <AppBar position="sticky" 
+  color="transparent"            
+  elevation={3}
+  sx={{
+    background: "linear-gradient(90deg,#0f172a 0%, #4f46e5 45%, #06b6d4 100%)",
+    backdropFilter: "blur(8px)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.6)",
+    fontWeight: 700,
+  }}>
+
       <Toolbar className="flex justify-between items-center px-4 md:px-10">
        
         <Typography
@@ -111,8 +120,8 @@ const Navbar = () => {
               to="/leaderboard"
               color="inherit"
               startIcon={<Leaderboard />}
-              className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
-              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
+              className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg "
+              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none", fontWeight: 700}}
             >
               Leaderboard
             </Button>
@@ -122,7 +131,7 @@ const Navbar = () => {
               color="inherit"
               startIcon={<MenuBook />}
               className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
-              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
+              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none",  fontWeight: 700}}
             >
               Rules
             </Button>
@@ -132,7 +141,7 @@ const Navbar = () => {
                 color="inherit"
                 startIcon={<Logout />}
                 className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
-                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
+                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none", fontWeight: 700 }}
               >
                 Logout
               </Button>
@@ -143,7 +152,7 @@ const Navbar = () => {
                 color="inherit"
                 startIcon={<Login />}
                 className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
-                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none" }}
+                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none", fontWeight: 700 }}
               >
                 Login
               </Button>
