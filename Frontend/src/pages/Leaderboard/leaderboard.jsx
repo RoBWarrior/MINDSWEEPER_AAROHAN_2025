@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./leaderboard.css";
+import "./Leaderboard.css";
 
 const ITEMS_PER_PAGE = 10;
 
