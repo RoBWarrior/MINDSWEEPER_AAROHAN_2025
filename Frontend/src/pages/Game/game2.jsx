@@ -162,7 +162,7 @@ export default function Game2() {
           {structureType === "tree" ? "🌌 Constellation Labeling Challenge" : "Graph Labeling Challenge"}
         </h1>
         <p style={{ margin: "8px 0 10px", color: "#cbd5e1" }}>
-          Place numbers <strong>1–7</strong> on the nodes so that <strong>no connected nodes</strong> have consecutive values.
+          Fill 7 empty nodes with 7 consecutive odd integers (between 1-13) so that every edge has a unique difference, defined as (larger node value − smaller node value)
         </p>
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 6 }}>
           <button
