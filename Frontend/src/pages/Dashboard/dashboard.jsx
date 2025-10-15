@@ -46,7 +46,7 @@ const Dashboard = () => {
         <span className="p5" />
       </div>
 
-      <main className="w-full flex flex-col items-center justify-center px-6 py-12">
+      <main className="w-full flex flex-col items-center justify-center px-6 py-6">
         <h1 className="mb-16 text-3xl md:text-5xl font-extrabold tracking-wide neon-title text-center">
           Choose Your Challenge
         </h1>

@@ -38,17 +38,8 @@ const RulesPage = () => {
             </h2>
             <p className="leading-relaxed text-gray-300">
               The puzzle looks like a <span className="text-purple-300 font-semibold">tree or a constellation</span>.
-              Each horizontal and vertical line forms an <span className="text-purple-300 font-semibold">equation</span>.
-              You must fill the blanks with numbers (<span className="text-purple-400">0–9</span> only).
-              The <span className="text-purple-400 font-semibold">operators (+, −, ×, ÷)</span> are fixed.
+              One has to fill the nodes of the tree with numbers from <span className="text-purple-300 font-semibold">1 to 13</span> ensuring that no two adjacent nodes have a difference of <span className="text-purple-300 font-semibold">1</span> to secure a score of <span className="text-purple-300 font-semibold">15</span> points.
             </p>
-            <p className="mt-3 text-gray-300">
-              Evaluations are done <span className="text-purple-400 font-semibold">left to right</span> — no BODMAS.
-            </p>
-            <div className="mt-4 p-4 rounded-lg bg-[#1e1b29]/80 border border-purple-500/30 text-gray-300 text-sm">
-              Example: <code className="text-purple-300 font-semibold">7 + 2 × 3</code>
-              is evaluated as <code className="text-purple-300 font-semibold">(7 + 2) × 3 = 27</code>.
-            </div>
           </div>
         </div>
       </div>
