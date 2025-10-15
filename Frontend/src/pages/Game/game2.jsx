@@ -4,7 +4,7 @@ import axios from "axios";
 // safe API base -- your Vite env var
 const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE || "";
 
-const ITEMS_COUNT = 13;
+const ITEMS_COUNT = 7;
 
 export default function Game2() {
   const [nodes, setNodes] = useState([]);

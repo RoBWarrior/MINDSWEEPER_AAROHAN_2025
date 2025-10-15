@@ -55,7 +55,7 @@ const Navbar = () => {
           style={{ textDecoration: "none", fontFamily: "Orbitron, sans-serif" }}
         >
           <Psychology fontSize="large" />
-          MindSweeper
+          MindSweepers
         </Typography>
 
         {isMobile ? (
