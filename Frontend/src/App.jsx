@@ -1,7 +1,7 @@
 import './App.css'
 import React from 'react';
 import AuthForm from './pages/Auth/Auth';
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { HashRouter as Router, Route, Routes } from "react-router-dom";
 import Dashboard from './pages/Dashboard/dashboard';
 import Leaderboard from './pages/Leaderboard/leaderboard';
 
