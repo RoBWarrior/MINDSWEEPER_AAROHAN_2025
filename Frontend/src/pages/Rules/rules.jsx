@@ -1,236 +1,276 @@
-// import React from "react";
-
-// const RulesPage = () => {
-//   return (
-//     <div className="h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white flex justify-center overflow-y-auto">
-//       {/* Scrollable content */}
-//       <div className="w-full max-w-5xl px-6 sm:px-10 py-8 flex flex-col items-center">
-//         <h1 className="text-4xl sm:text-5xl font-extrabold mb-12 text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]">
-//           Game Rules
-//         </h1>
-//         <br />
-//         <div className="flex flex-col items-center gap-10 w-full">
-//           {/* Game 1 Card */}
-//           <div className="w-full max-w-md relative group bg-[#0a0f1c]/70 border border-cyan-400/30 rounded-2xl p-6 sm:p-8 shadow-[0_0_25px_rgba(0,255,255,0.15)] hover:shadow-[0_0_40px_rgba(0,255,255,0.4)] transition-all duration-500 backdrop-blur-md">
-//             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-cyan-400">
-//               Game 1: Grid Tap Puzzle
-//             </h2>
-//             <p className="leading-relaxed text-gray-300">
-//               You have a <span className="text-cyan-300 font-semibold">3×3 grid</span> of cells.
-//               Each cell holds a number from <span className="text-blue-400">0, 1, or 2</span>.
-//               When you tap a cell, that cell and its direct neighbors
-//               (<span className="text-blue-400">up, down, left, right</span>) all increase by 1.
-//               Numbers are taken <span className="text-cyan-400 font-semibold">mod 3</span>:
-//             </p>
-//             <div className="mt-3">
-//               <code className="text-sm text-cyan-300 block">0 → 1 → 2 → 0</code>
-//             </div>
-//             <div className="mt-4 p-4 rounded-lg bg-[#020617]/80 border border-cyan-500/30 text-gray-300 text-sm">
-//               Example: From the initial grid, we perform <b>6 taps</b> at positions
-//               <span className="text-cyan-300 font-semibold"> (1,1), (1,1), (1,2), (1,2), (3,2), (3,2)</span>.
-//             </div>
-//           </div>
-
-//           {/* Game 2 Card */}
-//           <div className="w-full max-w-md relative group bg-[#0a0f1c]/70 border border-purple-400/30 rounded-2xl p-6 sm:p-8 shadow-[0_0_25px_rgba(200,100,255,0.15)] hover:shadow-[0_0_40px_rgba(200,100,255,0.4)] transition-all duration-500 backdrop-blur-md">
-//             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-purple-400">
-//               Game 2: Constellation Puzzle
-//             </h2>
-//             <p className="leading-relaxed text-gray-300">
-//               The puzzle looks like a <span className="text-purple-300 font-semibold">tree or a constellation</span>.
-//               One has to fill the nodes of the tree with numbers from <span className="text-purple-300 font-semibold">1 to 13</span> ensuring that no two adjacent nodes have a difference of <span className="text-purple-300 font-semibold">1</span> to secure a score of <span className="text-purple-300 font-semibold">15</span> points.
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default RulesPage;
-
-
-
-
-
-import React from "react";
+import React, { useState } from "react";
+import "./rules.css";
 
 const RulesPage = () => {
+  const [expandedGame, setExpandedGame] = useState(null);
+
+  const games = [
+    {
+      id: 1,
+      title: "Grid Tap Puzzle",
+      subtitle: "Master the Matrix",
+      icon: "🎯",
+      color: "cyan",
+      points: 75,
+      difficulty: "Medium",
+      description: "Transform a 3×3 grid of numbers into all zeros through strategic tapping.",
+      rules: [
+        {
+          label: "Grid Setup",
+          text: "You have a 3×3 grid of cells. Each cell holds a number from 0, 1, or 2."
+        },
+        {
+          label: "Tap Mechanics",
+          text: "When you tap a cell, that cell and its direct neighbors (up, down, left, right) all increase by 1."
+        },
+        {
+          label: "Modulo Operation",
+          text: "Numbers cycle through mod 3: 0 → 1 → 2 → 0"
+        },
+        {
+          label: "Victory Condition",
+          text: "Make all cells in the grid equal to 0 to win 75 points."
+        }
+      ],
+      example: {
+        title: "Example Solution",
+        description: "From the initial grid, perform 6 taps at positions:",
+        positions: "(1,1), (1,1), (1,2), (1,2), (3,2), (3,2)"
+      }
+    },
+    {
+      id: 2,
+      title: "Constellation Puzzle",
+      subtitle: "Connect the Stars",
+      icon: "⭐",
+      color: "purple",
+      points: 15,
+      difficulty: "Hard",
+      description: "Arrange numbers on a tree structure to create unique edge weights.",
+      rules: [
+        {
+          label: "Tree Structure",
+          text: "The puzzle presents a tree or constellation with 7 nodes."
+        },
+        {
+          label: "Number Assignment",
+          text: "Fill nodes with numbers from the set: 1, 3, 5, 7, 9, 11, 13."
+        },
+        {
+          label: "Edge Weight",
+          text: "Edge weight is the absolute difference between two connected nodes."
+        },
+        {
+          label: "Victory Condition",
+          text: "Ensure all edge weights are unique to secure 15 points."
+        }
+      ],
+      example: {
+        title: "Pro Tip",
+        description: "Strategic placement ensures maximum edge weight diversity.",
+        positions: null
+      }
+    }
+  ];
+
+  const toggleGame = (gameId) => {
+    setExpandedGame(expandedGame === gameId ? null : gameId);
+  };
+
   return (
-    <>
-      {/* Google font — move to index.html <head> for production */}
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
-      />
+    <div className="rules-wrapper">
+      {/* Animated Background */}
+      <div className="rules-background">
+        <div className="bg-orb orb-cyan"></div>
+        <div className="bg-orb orb-purple"></div>
+        <div className="bg-orb orb-pink"></div>
+        <div className="grid-mesh"></div>
+      </div>
 
-      <div
-        className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white flex justify-center"
-        style={{
-          // global font + safe fallback stack
-          fontFamily:
-            'Poppins, Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
-          // ensure scrolling if content exceeds viewport
-          overflowY: "auto",
-          paddingTop: 28, // keeps content away from top nav if fixed
-          paddingBottom: 48,
-          paddingLeft: 16,
-          paddingRight: 16,
-          boxSizing: "border-box",
-        }}
-      >
-        {/* Scrollable content */}
-        <div
-          className="w-full"
-          style={{
-            maxWidth: 1100,
-            paddingLeft: 24,
-            paddingRight: 24,
-            paddingTop: 32,
-            paddingBottom: 48,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 40,
-            boxSizing: "border-box",
-          }}
-        >
-          <h1
-            className="text-4xl sm:text-5xl font-extrabold text-center"
-            style={{
-              margin: 0,
-              lineHeight: 1.05,
-              // gradient text look retained
-              background:
-                "linear-gradient(90deg, rgba(56,189,248,1), rgba(59,130,246,1))",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-              textShadow: "0 6px 18px rgba(0,255,255,0.06)",
-            }}
-          >
-            Game Rules
+      {/* Floating Particles */}
+      <div className="rules-particles">
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className={`rules-particle particle-${i + 1}`}></div>
+        ))}
+      </div>
+
+      <div className="rules-container">
+        {/* Header Section */}
+        <header className="rules-header">
+          <div className="header-badge">
+            <svg className="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span>Official Rulebook</span>
+          </div>
+          
+          <h1 className="rules-title">
+            <span className="title-main">Game Rules</span>
+            <span className="title-sub">& Strategy Guide</span>
           </h1>
+          
+          <p className="rules-description">
+            Master the mechanics, dominate the leaderboard
+          </p>
 
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 28,
-            }}
-          >
-            {/* Game 1 Card */}
-            <div
-              className="group"
-              style={{
-                width: "100%",
-                maxWidth: 720,
-                background: "rgba(10,15,28,0.72)",
-                border: "1px solid rgba(6,182,212,0.12)",
-                borderRadius: 16,
-                padding: 22,
-                boxShadow: "0 0 25px rgba(0,255,255,0.06)",
-                backdropFilter: "blur(8px)",
-                boxSizing: "border-box",
-                marginInline: "auto",
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  margin: "0 0 10px 0",
-                  color: "#06b6d4",
-                }}
-              >
-                Game 1: Grid Tap Puzzle
-              </h2>
+          <div className="header-decoration"></div>
+        </header>
 
-              <p style={{ margin: 0, color: "#cbd5e1", lineHeight: 1.6 }}>
-                You have a <strong className="text-cyan-300">3×3 grid</strong> of
-                cells. Each cell holds a number from{" "}
-                <strong style={{ color: "#60a5fa" }}>0, 1, or 2</strong>. When you
-                tap a cell, that cell and its direct neighbors (
-                <strong style={{ color: "#60a5fa" }}>up, down, left, right</strong>
-                ) all increase by 1. One Can win <strong style={{ color: "#06b6d4" }}>75</strong> points by making all the cells of the grid to 0. <br/> Numbers are taken{" "}
-                <strong style={{ color: "#06b6d4" }}>mod 3</strong>:
-              </p>
-
-              <div
-                style={{
-                  marginTop: 12,
-                  display: "inline-block",
-                  padding: 10,
-                  borderRadius: 8,
-                  background: "rgba(2,6,23,0.6)",
-                  border: "1px solid rgba(6,182,212,0.06)",
-                }}
-              >
-                <code style={{ color: "#06b6d4", fontSize: 13 }}>0 → 1 → 2 → 0</code>
-              </div>
-
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: 14,
-                  borderRadius: 10,
-                  background: "rgba(2,6,23,0.52)",
-                  border: "1px solid rgba(6,182,212,0.06)",
-                  color: "#cbd5e1",
-                  fontSize: 14,
-                }}
-              >
-                Example: From the initial grid, we perform <strong>6 taps</strong> at
-                positions{" "}
-                <strong style={{ color: "#06b6d4" }}>
-                  (1,1), (1,1), (1,2), (1,2), (3,2), (3,2)
-                </strong>
-                .
-              </div>
+        {/* Stats Bar */}
+        <div className="stats-bar">
+          <div className="stat-item">
+            <div className="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+              </svg>
             </div>
+            <div className="stat-content">
+              <div className="stat-value">{games.length}</div>
+              <div className="stat-label">Games</div>
+            </div>
+          </div>
 
-            {/* Game 2 Card */}
-            <div
-              className="group"
-              style={{
-                width: "100%",
-                maxWidth: 720,
-                background: "rgba(10,15,28,0.72)",
-                border: "1px solid rgba(139,92,246,0.10)",
-                borderRadius: 16,
-                padding: 22,
-                boxShadow: "0 0 25px rgba(139,92,246,0.06)",
-                backdropFilter: "blur(8px)",
-                boxSizing: "border-box",
-                marginInline: "auto",
-              }}
+          <div className="stat-item">
+            <div className="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="stat-content">
+              <div className="stat-value">{games.reduce((sum, g) => sum + g.points, 0)}</div>
+              <div className="stat-label">Total Points</div>
+            </div>
+          </div>
+
+          <div className="stat-item">
+            <div className="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <div className="stat-content">
+              <div className="stat-value">∞</div>
+              <div className="stat-label">Strategies</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Game Cards */}
+        <div className="games-section">
+          {games.map((game, index) => (
+            <article 
+              key={game.id} 
+              className={`game-rule-card game-${game.color} ${expandedGame === game.id ? 'expanded' : ''}`}
+              style={{ animationDelay: `${index * 0.15}s` }}
             >
-              <h2
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  margin: "0 0 10px 0",
-                  color: "#a78bfa",
-                }}
-              >
-                Game 2: Constellation Puzzle
-              </h2>
+              {/* Card Header */}
+              <div className="card-header" onClick={() => toggleGame(game.id)}>
+                <div className="card-header-left">
+                  <div className="game-icon-wrapper">
+                    <span className="game-icon">{game.icon}</span>
+                    <div className="icon-glow"></div>
+                  </div>
+                  
+                  <div className="game-header-info">
+                    <div className="game-meta">
+                      <span className="game-number">Game {game.id}</span>
+                      <span className="difficulty-badge">{game.difficulty}</span>
+                    </div>
+                    <h2 className="game-title">{game.title}</h2>
+                    <p className="game-subtitle">{game.subtitle}</p>
+                  </div>
+                </div>
 
-              <p style={{ margin: 0, color: "#cbd5e1", lineHeight: 1.6 }}>
-                The puzzle looks like a <strong style={{ color: "#c084fc" }}>tree or
-                a constellation</strong>. One has to fill the nodes of the tree
-                with numbers from <strong style={{ color: "#c084fc" }}>1,3,5,7,9,11,13</strong>{" "}
-                ensuring that no two edge weights are the same. Edge weight is the absolute difference of the two nodes the edge connects.{" "}
-                One can secure a score of{" "}
-                <strong style={{ color: "#c084fc" }}>15</strong> points by getting the right configuration.
-              </p>
+                <div className="card-header-right">
+                  <div className="points-display">
+                    <svg className="points-star-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span className="points-value">{game.points}</span>
+                  </div>
+                  
+                  <button className="expand-button" aria-label={expandedGame === game.id ? "Collapse" : "Expand"}>
+                    <svg 
+                      className={`expand-icon ${expandedGame === game.id ? 'rotated' : ''}`} 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Card Description */}
+              <div className="card-description">
+                <p>{game.description}</p>
+              </div>
+
+              {/* Expandable Content */}
+              <div className={`card-content ${expandedGame === game.id ? 'show' : ''}`}>
+                <div className="rules-list">
+                  <h3 className="rules-list-title">
+                    <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    How to Play
+                  </h3>
+                  
+                  {game.rules.map((rule, idx) => (
+                    <div key={idx} className="rule-item">
+                      <div className="rule-number">{idx + 1}</div>
+                      <div className="rule-content">
+                        <h4 className="rule-label">{rule.label}</h4>
+                        <p className="rule-text">{rule.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Example Section */}
+                <div className="example-section">
+                  <h3 className="example-title">
+                    <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    {game.example.title}
+                  </h3>
+                  <p className="example-description">{game.example.description}</p>
+                  {game.example.positions && (
+                    <div className="example-code">
+                      <code>{game.example.positions}</code>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Card Border Effect */}
+              <div className="card-border-effect"></div>
+            </article>
+          ))}
+        </div>
+
+        {/* Footer Tips */}
+        <div className="tips-section">
+          <div className="tip-card">
+            <div className="tip-icon">💡</div>
+            <div className="tip-content">
+              <h3 className="tip-title">Pro Tip</h3>
+              <p className="tip-text">Practice makes perfect! Try different strategies to master each game.</p>
+            </div>
+          </div>
+
+          <div className="tip-card">
+            <div className="tip-icon">🎮</div>
+            <div className="tip-content">
+              <h3 className="tip-title">Challenge Yourself</h3>
+              <p className="tip-text">Aim for the minimum number of moves to achieve the highest efficiency!</p>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

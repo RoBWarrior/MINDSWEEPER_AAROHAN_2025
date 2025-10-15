@@ -1,248 +1,17 @@
-// import React, { useEffect, useState } from "react";
-// import { TailSpin } from "react-loader-spinner";
-// import bg from "../../../public/assets/istockphoto-1328693155-612x612.jpg";
-
-
-// const ITEMS_PER_PAGE = 5; 
-
-// const Leaderboard = () => {
-//   const [leaderboard, setLeaderboard] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [currentPage, setCurrentPage] = useState(1);
-
-//   // ----- Pagination Helpers -----
-//   const totalItems = leaderboard.length;
-//   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-//   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-//   const endIndex = startIndex + ITEMS_PER_PAGE;
-//   const currentPageData = leaderboard.slice(startIndex, endIndex);
-
-//   // ----- Fetch Leaderboard Data -----
-//   const getLeaderBoard = () => {
-//     fetch(`${import.meta.env.VITE_BACKEND_BASE}/api/leaderboard`)
-//       .then((response) => response.json())
-//       .then((data) => {
-//         // Expect data.leaderboard to be an array of { username, points }
-//         setLeaderboard(data.leaderboard);
-//       })
-//       .catch((err) => console.error("Error fetching leaderboard data:", err));
-//   };
-
-//   useEffect(() => {
-//     setLoading(true);
-//     setTimeout(() => {
-//       getLeaderBoard();
-//       setLoading(false);
-//     }, 1000);
-//   }, []);
-
-//   // ----- Pagination Handlers -----
-//   const handleNextPage = () => {
-//     if (currentPage < totalPages) {
-//       setCurrentPage((prev) => prev + 1);
-//     }
-//   };
-
-//   const handlePrevPage = () => {
-//     if (currentPage > 1) {
-//       setCurrentPage((prev) => prev - 1);
-//     }
-//   };
-
-//   return (
-//     <div
-//       style={{
-//         minHeight: "100vh",
-//         backgroundImage: `url(${bg})`,
-//         backgroundSize: "cover",
-//         backgroundPosition: "center",
-//         backgroundRepeat: "no-repeat",
-//         position: "relative",
-//       }}
-//     >
-//       {/* Optional overlay if you want to darken or color-tint the background */}
-//       <div
-//         style={{
-//           position: "absolute",
-//           top: 0,
-//           left: 0,
-//           width: "100%",
-//           height: "100%",
-//           background: "rgba(0,0,0,0.6)",
-//         }}
-//       ></div>
-
-//       <div
-//         style={{
-//           position: "relative",
-//           zIndex: 1,
-//           maxWidth: "600px",
-//           margin: "0 auto",
-//           padding: "2rem",
-//           textAlign: "center",
-//           color: "#edeee5ff",
-//         }}
-//       >
-//         <h1
-//           style={{
-//             fontSize: "2.5rem",
-//             fontWeight: "bold",
-//             marginBottom: "1.5rem",
-//             textTransform: "uppercase",
-//             letterSpacing: "2px",
-            
-//           }}
-//         >
-//           Leaderboard
-//         </h1>
-
-//         {loading ? (
-//           <div style={{ marginTop: "3rem" }}>
-//             <TailSpin
-//               visible={true}
-//               height="135"
-//               width="550"
-//               ariaLabel="loading"
-//               color="#06b9f5ff"
-//             />
-//           </div>
-//         ) : currentPageData.length ? (
-//           <>
-//             {/* Leaderboard List */}
-//             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-//               {currentPageData.map((elem, index) => {
-//                 // Overall rank in the entire list
-//                 const overallRank = startIndex + index + 1;
-
-//                 // Choose a border color or style for top ranks
-//                 let rowBorder = "2px solid transparent";
-//                 if (overallRank === 1) rowBorder = "2px solid gold";
-//                 else if (overallRank === 2) rowBorder = "2px solid silver";
-//                 else if (overallRank === 3) rowBorder = "2px solid #cd7f32"; // Bronze
-
-//                 return (
-//                   <div
-//                     key={overallRank}
-//                     style={{
-//                       display: "flex",
-//                       justifyContent: "space-between",
-//                       alignItems: "center",
-//                       backgroundColor: "rgba(196, 202, 172, 0.1)",
-//                       border: rowBorder,
-//                       borderRadius: "6px",
-//                       padding: "0.75rem 1rem",
-//                       fontSize: "1.1rem",
-//                     }}
-//                   >
-//                     <span style={{ flex: "0 0 2rem", fontWeight: "bold", fontFamily: "cursive" }}>
-//                       {overallRank}
-//                     </span>
-//                     <span style={{ flex: "1", textAlign: "center", fontWeight: 500, fontFamily: "cursive" }}>
-//                       {elem.username}
-//                     </span>
-//                     <span style={{ flex: "0 0 6rem", textAlign: "right", fontFamily: "cursive" }}>
-//                       {elem.points} pts
-//                     </span>
-//                   </div>
-//                 );
-//               })}
-//             </div>
-
-//             {/* Pagination Controls */}
-//             <div
-//               style={{
-//                 display: "flex",
-//                 justifyContent: "center",
-//                 alignItems: "center",
-//                 gap: "1rem",
-//                 marginTop: "1rem",
-//               }}
-//             >
-//               <button
-//                 onClick={handlePrevPage}
-//                 disabled={currentPage === 1}
-//                 style={{
-//                   backgroundColor: "#310ebeff",
-//                   color: "#fff9f9ff",
-//                   border: "none",
-//                   padding: "0.5rem 1rem",
-//                   borderRadius: "4px",
-//                   cursor: currentPage === 1 ? "not-allowed" : "pointer",
-//                   opacity: currentPage === 1 ? 0.5 : 1,
-//                   fontFamily: "cursive"
-//                 }}
-//               >
-//                 Previous
-//               </button>
-
-//               <span style={{ fontWeight: 500, fontFamily: "cursive" }}>
-//                 Page {currentPage} of {totalPages}
-//               </span>
-
-//               <button
-//                 onClick={handleNextPage}
-//                 disabled={currentPage === totalPages}
-//                 style={{
-//                   backgroundColor: "#310ebeff",
-//                   color: "#fff9f9ff",
-//                   border: "none",
-//                   padding: "0.5rem 1rem",
-//                   borderRadius: "4px",
-//                   cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-//                   opacity: currentPage === totalPages ? 0.5 : 1,
-//                   fontFamily: "cursive"
-//                 }}
-//               >
-//                 Next
-//               </button>
-//             </div>
-//           </>
-//         ) : (
-//           <p style={{ marginTop: "2rem", fontSize: "1.2rem" }}>No data available</p>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Leaderboard;
-
-
-
-
 import React, { useEffect, useState } from "react";
-import bg from "../../../public/assets/istockphoto-1328693155-612x612.jpg";
+import "./leaderboard.css";
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 const Spinner = () => (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      height: "135px",
-      width: "100%",
-    }}
-  >
-    <div className="loader"></div>
-    <style>
-      {`
-        .loader {
-          border: 6px solid #f3f3f3;
-          border-top: 6px solid #06b9f5;
-          border-radius: 50%;
-          width: 70px;
-          height: 70px;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}
-    </style>
+  <div className="spinner-container">
+    <div className="spinner">
+      <div className="spinner-ring"></div>
+      <div className="spinner-ring"></div>
+      <div className="spinner-ring"></div>
+      <div className="spinner-core"></div>
+    </div>
+    <p className="loading-text">Loading Rankings...</p>
   </div>
 );
 
@@ -250,6 +19,7 @@ const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [animateRanks, setAnimateRanks] = useState(false);
 
   const totalItems = leaderboard.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -262,6 +32,7 @@ const Leaderboard = () => {
       .then((response) => response.json())
       .then((data) => {
         setLeaderboard(data.leaderboard || []);
+        setTimeout(() => setAnimateRanks(true), 100);
       })
       .catch((err) => console.error("Error fetching leaderboard data:", err));
   };
@@ -271,8 +42,13 @@ const Leaderboard = () => {
     setTimeout(() => {
       getLeaderBoard();
       setLoading(false);
-    }, 1000);
+    }, 1500);
   }, []);
+
+  useEffect(() => {
+    setAnimateRanks(false);
+    setTimeout(() => setAnimateRanks(true), 50);
+  }, [currentPage]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
@@ -282,144 +58,188 @@ const Leaderboard = () => {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
+  const getMedalIcon = (rank) => {
+    if (rank === 1) return "🥇";
+    if (rank === 2) return "🥈";
+    if (rank === 3) return "🥉";
+    return null;
+  };
+
+  const getRankClass = (rank) => {
+    if (rank === 1) return "rank-gold";
+    if (rank === 2) return "rank-silver";
+    if (rank === 3) return "rank-bronze";
+    return "rank-default";
+  };
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${bg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        position: "relative",
-      }}
-    >
-      {/* Background overlay */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          background: "rgba(0,0,0,0.6)",
-        }}
-      ></div>
+    <div className="leaderboard-wrapper">
+      {/* Animated Background */}
+      <div className="leaderboard-background">
+        <div className="bg-gradient gradient-1"></div>
+        <div className="bg-gradient gradient-2"></div>
+        <div className="bg-gradient gradient-3"></div>
+        <div className="grid-pattern"></div>
+        <div className="scanline"></div>
+      </div>
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          maxWidth: "600px",
-          margin: "0 auto",
-          padding: "2rem",
-          textAlign: "center",
-          color: "#edeee5ff",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "2.5rem",
-            fontWeight: "bold",
-            marginBottom: "1.5rem",
-            textTransform: "uppercase",
-            letterSpacing: "2px",
-          }}
-        >
-          Leaderboard
-        </h1>
+      {/* Particles */}
+      <div className="particles-bg">
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className={`particle-dot particle-${i + 1}`}></div>
+        ))}
+      </div>
 
-        {loading ? (
-          <Spinner />
-        ) : currentPageData.length ? (
-          <>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {currentPageData.map((elem, index) => {
-                const overallRank = startIndex + index + 1;
+      <div className="leaderboard-container">
+        {/* Header Section */}
+        <div className="header-section">
+          <div className="title-decoration-top"></div>
+          <h1 className="leaderboard-title">
+            <span className="title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </span>
+            <span className="title-text">Leaderboard</span>
+          </h1>
+          <p className="leaderboard-subtitle">Top Performers Worldwide</p>
+          <div className="title-decoration-bottom"></div>
+        </div>
 
-                let rowBorder = "2px solid transparent";
-                if (overallRank === 1) rowBorder = "2px solid gold";
-                else if (overallRank === 2) rowBorder = "2px solid silver";
-                else if (overallRank === 3) rowBorder = "2px solid #cd7f32";
+        {/* Content */}
+        <div className="leaderboard-content">
+          {loading ? (
+            <Spinner />
+          ) : currentPageData.length ? (
+            <>
+              {/* Podium for Top 3 */}
+              {currentPage === 1 && (
+                <div className="podium-section">
+                  {[1, 0, 2].map((idx) => {
+                    const player = leaderboard[idx];
+                    if (!player) return null;
+                    const rank = idx + 1;
+                    return (
+                      <div 
+                        key={rank} 
+                        className={`podium-card podium-${rank}`}
+                        style={{ animationDelay: `${idx * 0.2}s` }}
+                      >
+                        <div className="podium-rank-badge">
+                          <span className="podium-medal">{getMedalIcon(rank)}</span>
+                          <span className="podium-number">#{rank}</span>
+                        </div>
+                        <div className="podium-avatar">
+                          <div className="avatar-glow"></div>
+                          <span className="avatar-text">
+                            {player.username.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <h3 className="podium-username">{player.username}</h3>
+                        <div className="podium-points">
+                          <svg className="points-star" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          </svg>
+                          <span className="points-value">{player.points}</span>
+                          <span className="points-label">pts</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
-                return (
-                  <div
-                    key={overallRank}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      backgroundColor: "rgba(196, 202, 172, 0.1)",
-                      border: rowBorder,
-                      borderRadius: "6px",
-                      padding: "0.75rem 1rem",
-                      fontSize: "1.1rem",
-                    }}
+              {/* Leaderboard List */}
+              <div className="leaderboard-list">
+                {currentPageData.map((elem, index) => {
+                  const overallRank = startIndex + index + 1;
+                  const rankClass = getRankClass(overallRank);
+                  const medal = getMedalIcon(overallRank);
+
+                  return (
+                    <div
+                      key={`${elem.username}-${overallRank}`}
+                      className={`leaderboard-row ${rankClass} ${animateRanks ? 'animate-in' : ''}`}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div className="row-background"></div>
+                      <div className="row-border"></div>
+                      
+                      <div className="row-rank">
+                        {medal ? (
+                          <span className="rank-medal">{medal}</span>
+                        ) : (
+                          <span className="rank-number">{overallRank}</span>
+                        )}
+                      </div>
+
+                      <div className="row-player">
+                        <div className="player-avatar">
+                          {elem.username.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="player-name">{elem.username}</span>
+                      </div>
+
+                      <div className="row-points">
+                        <div className="points-container">
+                          <span className="points-number">{elem.points}</span>
+                          <span className="points-text">pts</span>
+                        </div>
+                      </div>
+
+                      <div className="row-shine"></div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="pagination">
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    className="pagination-button prev-button"
+                    aria-label="Previous page"
                   >
-                    <span style={{ flex: "0 0 2rem", fontWeight: "bold", fontFamily: "cursive" }}>
-                      {overallRank}
-                    </span>
-                    <span style={{ flex: "1", textAlign: "center", fontWeight: 500, fontFamily: "cursive" }}>
-                      {elem.username}
-                    </span>
-                    <span style={{ flex: "0 0 6rem", textAlign: "right", fontFamily: "cursive" }}>
-                      {elem.points} pts
-                    </span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span>Previous</span>
+                  </button>
+
+                  <div className="pagination-info">
+                    <span className="page-current">{currentPage}</span>
+                    <span className="page-separator">/</span>
+                    <span className="page-total">{totalPages}</span>
                   </div>
-                );
-              })}
+
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className="pagination-button next-button"
+                    aria-label="Next page"
+                  >
+                    <span>Next</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+              </div>
+              <h3 className="empty-title">No Rankings Yet</h3>
+              <p className="empty-text">Be the first to climb the leaderboard!</p>
             </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "1rem",
-                marginTop: "1rem",
-              }}
-            >
-              <button
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                style={{
-                  backgroundColor: "#310ebeff",
-                  color: "#fff9f9ff",
-                  border: "none",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "4px",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                  opacity: currentPage === 1 ? 0.5 : 1,
-                  fontFamily: "cursive",
-                }}
-              >
-                Previous
-              </button>
-
-              <span style={{ fontWeight: 500, fontFamily: "cursive" }}>
-                Page {currentPage} of {totalPages}
-              </span>
-
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                style={{
-                  backgroundColor: "#310ebeff",
-                  color: "#fff9f9ff",
-                  border: "none",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "4px",
-                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-                  opacity: currentPage === totalPages ? 0.5 : 1,
-                  fontFamily: "cursive",
-                }}
-              >
-                Next
-              </button>
-            </div>
-          </>
-        ) : (
-          <p style={{ marginTop: "2rem", fontSize: "1.2rem" }}>No data available</p>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

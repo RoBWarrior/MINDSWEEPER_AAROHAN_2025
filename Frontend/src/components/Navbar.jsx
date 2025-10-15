@@ -35,61 +35,64 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="sticky" 
-  color="transparent"            
-  elevation={3}
-  sx={{
-    background: "linear-gradient(90deg,#0f172a 0%, #4f46e5 45%, #06b6d4 100%)",
-    backdropFilter: "blur(8px)",
-    boxShadow: "0 8px 30px rgba(0,0,0,0.6)",
-    fontWeight: 700,
-  }}>
-
-      <Toolbar className="flex justify-between items-center px-4 md:px-10">
-       
+    <AppBar 
+      position="sticky" 
+      color="transparent"            
+      elevation={0}
+      className="premium-navbar"
+    >
+      <div className="navbar-glow"></div>
+      <Toolbar className="navbar-toolbar">
+        {/* Logo Section */}
         <Typography
           component={Link}
           to="/"
           variant="h5"
-          className="neon-text flex items-center gap-2 font-bold text-cyan-400 hover:text-fuchsia-400 transition-colors"
-          style={{ textDecoration: "none", fontFamily: "Orbitron, sans-serif" }}
+          className="logo-container"
+          style={{ textDecoration: "none" }}
         >
-          <Psychology fontSize="large" />
-          MindSweepers
+          <div className="logo-icon-wrapper">
+            <Psychology className="logo-icon" />
+            <div className="logo-icon-glow"></div>
+          </div>
+          <span className="logo-text">MindSweepers</span>
         </Typography>
 
         {isMobile ? (
           <>
-            <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
-              <MenuIcon className="text-cyan-400 hover:text-fuchsia-400 transition-colors" />
+            <IconButton 
+              color="inherit" 
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+              className="mobile-menu-button"
+            >
+              <MenuIcon />
             </IconButton>
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={() => setAnchorEl(null)}
-              sx={{
-                "& .MuiPaper-root": {
-                  background: "rgba(20, 20, 35, 0.9)",
-                  color: "white",
-                  backdropFilter: "blur(12px)",
-                },
+              className="mobile-menu"
+              PaperProps={{
+                className: "mobile-menu-paper"
               }}
             >
               <MenuItem
                 component={Link}
                 to="/leaderboard"
                 onClick={() => setAnchorEl(null)}
-                className="font-cursive nav-link"
+                className="mobile-menu-item"
               >
-                <Leaderboard sx={{ mr: 1 }} /> Leaderboard
+                <Leaderboard className="menu-item-icon" /> 
+                <span>Leaderboard</span>
               </MenuItem>
               <MenuItem
                 component={Link}
                 to="/rules"
                 onClick={() => setAnchorEl(null)}
-                className="font-cursive nav-link"
+                className="mobile-menu-item"
               >
-                <MenuBook sx={{ mr: 1 }} /> Rules
+                <MenuBook className="menu-item-icon" /> 
+                <span>Rules</span>
               </MenuItem>
               {isLoggedIn ? (
                 <MenuItem
@@ -97,64 +100,58 @@ const Navbar = () => {
                     handleLogout();
                     setAnchorEl(null);
                   }}
-                  className="font-cursive nav-link"
+                  className="mobile-menu-item logout-item"
                 >
-                  <Logout sx={{ mr: 1 }} /> Logout
+                  <Logout className="menu-item-icon" /> 
+                  <span>Logout</span>
                 </MenuItem>
               ) : (
                 <MenuItem
                   component={Link}
                   to="/login"
                   onClick={() => setAnchorEl(null)}
-                  className="font-cursive nav-link"
+                  className="mobile-menu-item login-item"
                 >
-                  <Login sx={{ mr: 1 }} /> Login
+                  <Login className="menu-item-icon" /> 
+                  <span>Login</span>
                 </MenuItem>
               )}
             </Menu>
           </>
         ) : (
-          <div className="flex items-center gap-6">
+          <div className="nav-links-container">
             <Button
               component={Link}
               to="/leaderboard"
-              color="inherit"
+              className="nav-button"
               startIcon={<Leaderboard />}
-              className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg "
-              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none", fontWeight: 700}}
             >
-              Leaderboard
+              <span className="nav-button-text">Leaderboard</span>
             </Button>
             <Button
               component={Link}
               to="/rules"
-              color="inherit"
+              className="nav-button"
               startIcon={<MenuBook />}
-              className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
-              sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none",  fontWeight: 700}}
             >
-              Rules
+              <span className="nav-button-text">Rules</span>
             </Button>
             {isLoggedIn ? (
               <Button
                 onClick={handleLogout}
-                color="inherit"
+                className="nav-button logout-button"
                 startIcon={<Logout />}
-                className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
-                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none", fontWeight: 700 }}
               >
-                Logout
+                <span className="nav-button-text">Logout</span>
               </Button>
             ) : (
               <Button
                 component={Link}
                 to="/login"
-                color="inherit"
+                className="nav-button login-button"
                 startIcon={<Login />}
-                className="nav-link text-cyan-400 hover:text-fuchsia-400 text-lg"
-                sx={{ fontFamily: "Orbitron, sans-serif", textTransform: "none", fontWeight: 700 }}
               >
-                Login
+                <span className="nav-button-text">Login</span>
               </Button>
             )}
           </div>
