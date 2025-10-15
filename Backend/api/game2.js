@@ -207,6 +207,9 @@ router.post('/validate-graph', async (req, res) => {
     // fetch game to get n and edges if available
     let game = null;
     if (gameId) game = await MathGraphGame.findOne({ gameId }).lean();
+    if (!game) {
+      return res.status(404).json({ validGame: false, solved: false, message: 'Game not found or expired' });
+    }
 
     const n = (game && Number.isInteger(game.n)) ? game.n : (Array.isArray(userNodes) ? userNodes.length : 7);
     if (!Array.isArray(userNodes) || userNodes.length !== n) {
