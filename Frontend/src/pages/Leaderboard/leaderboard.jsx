@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TailSpin } from "react-loader-spinner";
-import bg from "/assets/istockphoto-1328693155-612x612.jpg";
+import bg from "../../../public/assets/istockphoto-1328693155-612x612.jpg";
 
 
 const ITEMS_PER_PAGE = 5; 
