@@ -61,7 +61,7 @@ export default function Game2() {
     setFeedback('');
     setPointsAwarded(0);
     try {
-      const q = `${process.env.process.env.BACKEND_BASE}/api/generate-crossword?size=12&count=6${typeof prefillParam !== 'undefined' ? `&prefill=${prefillParam}` : ''}`;
+      const q = `${import.meta.env.VITE_BACKEND_BASE}/api/generate-crossword?size=12&count=6${typeof prefillParam !== 'undefined' ? `&prefill=${prefillParam}` : ''}`;
       const res = await axios.get(q);
       const payload = res.data || {};
       if (!Array.isArray(payload.grid)) {

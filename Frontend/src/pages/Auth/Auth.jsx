@@ -23,8 +23,8 @@ const AuthForm = () => {
     }
 
     const endpoint = isSignUp
-      ? `${process.env.BACKEND_BASE}/api/auth/signup`
-      : `${process.env.BACKEND_BASE}/api/auth/login`;
+      ? `${import.meta.env.VITE_BACKEND_BASE}/api/auth/signup`
+      : `${import.meta.env.VITE_BACKEND_BASE}/api/auth/login`;
 
     try {
       const response = await fetch(endpoint, {
