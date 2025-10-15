@@ -281,6 +281,7 @@ router.post('/validate-graph', async (req, res) => {
           userDoc.points = (userDoc.points || 0) + awardedPoints;
           await userDoc.save();
         }
+        await MathGraphGame.deleteOne({ gameId });
       }
 
       // generate new game for next round (same n)

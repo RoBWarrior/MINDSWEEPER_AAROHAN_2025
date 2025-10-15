@@ -183,7 +183,7 @@ router.post('/validate-game', async (req, res) => {
         awardedPoints = 0;
       }
     }
-
+    await Game.deleteOne({ gameId });
     // generate new puzzle to return to client
     const { initialGrid: newGrid, solutionToggles: newSol, generateToggles: newGen } = generatePuzzle();
     const newGameId = typeof randomUUID === 'function'
