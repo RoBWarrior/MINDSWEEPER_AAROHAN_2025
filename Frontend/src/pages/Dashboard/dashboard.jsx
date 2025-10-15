@@ -81,7 +81,10 @@ const Dashboard = () => {
 
 
 
-       <div className="flex items-center gap-4"> <button onClick={(e) => { e.stopPropagation(); handlePlay(g.path); }} aria-label={`Play ${g.title}`} className="play-btn relative z-20 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full backdrop-blur-sm border border-white/20 shadow-lg transform transition-all duration-300 group-hover:scale-110 cursor-pointer" > Play </button> </div>
+       <div className="flex items-center gap-4"> 
+        <button onClick={(e) => { e.stopPropagation(); handlePlay(g.path); }} aria-label={`Play ${g.title}`}
+         className="play-btn relative z-20 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full backdrop-blur-sm border border-white/20 shadow-lg transform transition-all duration-300 group-hover:scale-110 cursor-pointer" >
+           Play </button> </div>
       </div>
 
       

@@ -23,8 +23,8 @@ const AuthForm = () => {
     }
 
     const endpoint = isSignUp
-      ? "http://localhost:5000/api/auth/signup"
-      : "http://localhost:5000/api/auth/login";
+      ? `${process.env.BACKEND_BASE}/api/auth/signup`
+      : `${process.env.BACKEND_BASE}/api/auth/login`;
 
     try {
       const response = await fetch(endpoint, {

@@ -19,7 +19,7 @@ const Leaderboard = () => {
 
   // ----- Fetch Leaderboard Data -----
   const getLeaderBoard = () => {
-    fetch(`http://localhost:5000/api/leaderboard`)
+    fetch(`${process.env.BACKEND_BASE}/api/leaderboard`)
       .then((response) => response.json())
       .then((data) => {
         // Expect data.leaderboard to be an array of { username, points }

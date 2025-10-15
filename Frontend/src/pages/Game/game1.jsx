@@ -3,7 +3,6 @@ import { Button, Typography, Grid, Box, Paper } from "@mui/material";
 import axios from "axios";
 import bg from "../../../public/assets/game1main.jpg"
 
-const BACKEND_BASE = "http://localhost:5000";
 
 const BACKGROUND_IMAGE = bg;
 
@@ -48,7 +47,7 @@ const LightGridGame = () => {
     setMoves([]);
     setAwardedPoints(0);
     try {
-      const resp = await axios.get(`${BACKEND_BASE}/api/generate-game`, { timeout: 6000 });
+      const resp = await axios.get(`${process.env.BACKEND_BASE}/api/generate-game`, { timeout: 6000 });
       if (resp.data && resp.data.grid) {
         setGrid(resp.data.grid);
         setGameId(resp.data.gameId || null);
@@ -58,7 +57,7 @@ const LightGridGame = () => {
     } catch (err) {
       console.error("Fetch game error:", err);
       if (err.response) setMessage(`Server error: ${err.response.status}`);
-      else if (err.request) setMessage(`No response from backend at ${BACKEND_BASE}`);
+      else if (err.request) setMessage(`No response from backend at ${process.env.BACKEND_BASE}`);
       else setMessage(err.message);
     } finally {
       setLoading(false);
@@ -112,7 +111,7 @@ const LightGridGame = () => {
     try {
       const email = localStorage.getItem('email') || undefined;
       // send moves for stronger server-side verification
-      const resp = await axios.post(`${BACKEND_BASE}/api/validate-game`, {
+      const resp = await axios.post(`${process.env.BACKEND_BASE}/api/validate-game`, {
         gameId,
         grid: solvedGrid, // could send moves instead: moves
         moves,             // we send moves as well for server replay verification

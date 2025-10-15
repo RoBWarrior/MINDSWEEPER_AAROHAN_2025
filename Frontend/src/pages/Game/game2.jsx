@@ -3,7 +3,7 @@ import axios from 'axios';
 import bg from "../../../public/assets/game2main.jpg"
 
 const LOCAL_STORAGE_KEY = 'arithmetic-crossword';
-const BACKEND_BASE = 'http://localhost:5000';
+
 
 // Keep ~50% of server prefilled to make hints more evident
 const PREFILL_RATIO = 0.5;
@@ -61,7 +61,7 @@ export default function Game2() {
     setFeedback('');
     setPointsAwarded(0);
     try {
-      const q = `${BACKEND_BASE}/api/generate-crossword?size=12&count=6${typeof prefillParam !== 'undefined' ? `&prefill=${prefillParam}` : ''}`;
+      const q = `${process.env.process.env.BACKEND_BASE}/api/generate-crossword?size=12&count=6${typeof prefillParam !== 'undefined' ? `&prefill=${prefillParam}` : ''}`;
       const res = await axios.get(q);
       const payload = res.data || {};
       if (!Array.isArray(payload.grid)) {
@@ -184,7 +184,7 @@ export default function Game2() {
     try {
       const merged = buildMergedGridForSubmit();
       const payload = { gameId, userGrid: merged, email: localStorage.getItem('email') || undefined };
-      const resp = await axios.post(`${BACKEND_BASE}/api/validate-crossword`, payload);
+      const resp = await axios.post(`${process.env.BACKEND_BASE}/api/validate-crossword`, payload);
       const data = resp.data || {};
 
       // compute and set statuses locally from known solution grid and current userGrid
