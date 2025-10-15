@@ -398,16 +398,18 @@
 
 
 
-import React, { useEffect, useState } from "react";
+
+
+
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
-// ✅ Safe API base URL (no `process` reference)
-const API_BASE_URL =
-  import.meta.env.VITE_BACKEND_BASE
+// safe API base -- your Vite env var
+const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE || "";
 
 const ITEMS_COUNT = 13;
 
-const Game2 = () => {
+export default function Game2() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [values, setValues] = useState(Array(ITEMS_COUNT).fill(""));
@@ -417,29 +419,78 @@ const Game2 = () => {
   const [message, setMessage] = useState("");
   const [badEdges, setBadEdges] = useState([]);
 
+  // viewBox string and svg display height (px)
+  const [viewBox, setViewBox] = useState("0 0 600 600");
+  const [svgHeightPx, setSvgHeightPx] = useState(Math.min(window.innerHeight * 0.7, 640));
+
+  // update svg height to fit viewport so tree never forces vertical scroll
+  const recomputeSvgHeight = useCallback(() => {
+    // reserve space for header + buttons (approx)
+    const reservedPx = 160; // header + controls + margins
+    const avail = Math.max(220, window.innerHeight - reservedPx);
+    // limit max so desktop doesn't make it huge
+    const height = Math.min(avail, 720);
+    setSvgHeightPx(height);
+  }, []);
+
+  useEffect(() => {
+    recomputeSvgHeight();
+    window.addEventListener("resize", recomputeSvgHeight);
+    return () => window.removeEventListener("resize", recomputeSvgHeight);
+  }, [recomputeSvgHeight]);
+
+  // compute viewBox from current nodes with padding,
+  // centers the content and allows the SVG to scale responsively.
+  useEffect(() => {
+    if (!nodes || nodes.length === 0) return;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    for (const n of nodes) {
+      if (!n) continue;
+      if (typeof n.x === "number") {
+        minX = Math.min(minX, n.x);
+        maxX = Math.max(maxX, n.x);
+      }
+      if (typeof n.y === "number") {
+        minY = Math.min(minY, n.y);
+        maxY = Math.max(maxY, n.y);
+      }
+    }
+    if (minX === Infinity || minY === Infinity) {
+      setViewBox("0 0 600 600");
+      return;
+    }
+    const pad = 48; // padding around tree
+    const vbX = Math.floor(minX - pad);
+    const vbY = Math.floor(minY - pad);
+    const vbW = Math.ceil(maxX - minX + pad * 2);
+    const vbH = Math.ceil(maxY - minY + pad * 2);
+    setViewBox(`${vbX} ${vbY} ${vbW} ${vbH}`);
+  }, [nodes]);
+
   const fetchGraph = async () => {
     try {
       setLoading(true);
-      console.log("Fetching new constellation/tree...");
-
-      const res = await axios.get(`${API_BASE_URL}/api/generate-graph`);
+      setMessage("");
+      setBadEdges([]);
+      const base = API_BASE_URL.replace(/\/+$/, "");
+      const url = `${base}/api/generate-graph`;
+      // debug: console.log("fetching", url);
+      const res = await axios.get(url);
       const data = res.data;
-
       if (!data || !data.success) {
-        console.error("Failed to generate structure:", data);
         setMessage("⚠️ Failed to load constellation. Please try again.");
         setLoading(false);
         return;
       }
-
-      console.log("Received structure:", data);
-      setNodes(data.nodes);
-      setEdges(data.edges);
-      setGameId(data.gameId);
+      setNodes(Array.isArray(data.nodes) ? data.nodes : []);
+      setEdges(Array.isArray(data.edges) ? data.edges : []);
+      setGameId(data.gameId || null);
       setStructureType(data.type || "graph");
       setValues(Array(ITEMS_COUNT).fill(""));
       setBadEdges([]);
-      setMessage("");
     } catch (err) {
       console.error("fetch graph error", err);
       setMessage("⚠️ Error fetching constellation data.");
@@ -448,30 +499,39 @@ const Game2 = () => {
     }
   };
 
+  useEffect(() => {
+    fetchGraph();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = async () => {
     try {
+      setMessage("");
       const payload = {
         gameId,
-        userNodes: values,
+        userNodes: values.map((v) => (v === "" ? null : Number(v))),
         edges,
-        email: localStorage.getItem("email") || "",
+        email: localStorage.getItem("email") || undefined,
       };
-
-      const res = await axios.post(`${API_BASE_URL}/api/validate-graph`, payload);
-      const data = res.data;
-
+      const base = API_BASE_URL.replace(/\/+$/, "");
+      const url = `${base}/api/validate-graph`;
+      const resp = await axios.post(url, payload);
+      const data = resp.data || {};
       if (data.valid) {
-        setMessage(data.message);
+        setMessage(data.message || "Correct!");
         if (data.newGame) {
-          setNodes(data.newGame.nodes);
-          setEdges(data.newGame.edges);
-          setGameId(data.newGame.gameId);
+          setNodes(data.newGame.nodes || []);
+          setEdges(data.newGame.edges || []);
+          setGameId(data.newGame.gameId || null);
           setValues(Array(ITEMS_COUNT).fill(""));
           setBadEdges([]);
+        } else {
+          // if no newGame provided, refresh
+          fetchGraph();
         }
       } else {
-        setMessage(data.message);
-        setBadEdges(data.badEdges || []);
+        setMessage(data.message || "Found invalid edges.");
+        setBadEdges(Array.isArray(data.badEdges) ? data.badEdges : []);
       }
     } catch (err) {
       console.error("Validation error:", err);
@@ -479,32 +539,89 @@ const Game2 = () => {
     }
   };
 
-  useEffect(() => {
-    fetchGraph();
-  }, []);
-
+  // helper: check guard for node existence
+  const getNode = (idx) => {
+    if (!nodes || !nodes[idx]) return null;
+    return nodes[idx];
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] text-white flex flex-col items-center justify-center p-4 overflow-auto">
-      {/* Header */}
-      <h1 className="text-3xl font-bold mb-4 text-center">
-        {structureType === "tree"
-          ? "🌌 Constellation Labeling Challenge"
-          : "Graph Labeling Challenge"}
-      </h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: 12,
+        boxSizing: "border-box",
+        background:
+          "linear-gradient(180deg, rgba(2,6,23,1) 0%, rgba(15,23,42,1) 100%)",
+        color: "white",
+      }}
+    >
+      {/* header + instructions */}
+      <div style={{ width: "100%", maxWidth: 980, textAlign: "center", marginBottom: 8 }}>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>
+          {structureType === "tree" ? "🌌 Constellation Labeling Challenge" : "Graph Labeling Challenge"}
+        </h1>
+        <p style={{ margin: "8px 0 10px", color: "#cbd5e1" }}>
+          Place numbers <strong>1–13</strong> on the nodes so that <strong>no connected nodes</strong> have consecutive values.
+        </p>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 6 }}>
+          <button
+            onClick={handleSubmit}
+            style={{
+              background: "#16a34a",
+              color: "#fff",
+              border: "none",
+              padding: "8px 14px",
+              borderRadius: 10,
+              fontWeight: 700,
+            }}
+          >
+            Submit
+          </button>
+          <button
+            onClick={fetchGraph}
+            style={{
+              background: "#6b7280",
+              color: "#fff",
+              border: "none",
+              padding: "8px 14px",
+              borderRadius: 10,
+              fontWeight: 700,
+            }}
+          >
+            New Constellation
+          </button>
+        </div>
+        {message && <div style={{ color: "#fbbf24", marginBottom: 6 }}>{message}</div>}
+      </div>
 
-      <p className="text-gray-300 mb-6 text-center">
-        Arrange numbers <b>1–13</b> on the nodes such that{" "}
-        <b>no two connected nodes</b> have consecutive numbers.
-      </p>
-
-      {/* 🟢 Graph canvas (clean — no dark box background) */}
-      <div className="relative rounded-2xl shadow-none overflow-hidden w-full max-w-3xl aspect-square">
-        <svg className="w-full h-full">
-          {/* Edges */}
+      {/* SVG container: width 100% up to max, centered. SVG height set so it fits viewport */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 980,
+          // keep no extra vertical margins so SVG fits in viewport
+          margin: "0 auto",
+        }}
+      >
+        <svg
+          viewBox={viewBox}
+          preserveAspectRatio="xMidYMid meet"
+          style={{
+            display: "block",
+            width: "100%",
+            height: svgHeightPx + "px",
+            touchAction: "manipulation", // helps on mobile
+          }}
+        >
+          {/* edges */}
           {edges.map((edge, i) => {
-            const n1 = nodes[edge.u];
-            const n2 = nodes[edge.v];
+            const n1 = getNode(edge.u);
+            const n2 = getNode(edge.v);
+            if (!n1 || !n2) return null;
             const isBad = badEdges.some(
               (e) =>
                 (e.u === edge.u && e.v === edge.v) ||
@@ -517,58 +634,74 @@ const Game2 = () => {
                 y1={n1.y}
                 x2={n2.x}
                 y2={n2.y}
-                stroke={isBad ? "#f87171" : "#84cc16"} // green lines
+                stroke={isBad ? "#f87171" : "#84cc16"}
                 strokeWidth={isBad ? 3 : 2}
-                opacity={isBad ? 0.9 : 0.6}
+                strokeLinecap="round"
+                opacity={isBad ? 0.95 : 0.7}
               />
             );
           })}
 
-          {/* 🟢 Nodes */}
-          {nodes.map((node, i) => (
-            <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
-              <circle
-                r="24" // bigger nodes
-                fill="#22c55e" // bright green
-                stroke="#bbf7d0"
-                strokeWidth="3"
-                className="transition-all duration-200 shadow-lg"
-              />
-              <foreignObject x="-22" y="-22" width="44" height="44">
-                <div className="flex justify-center items-center w-full h-full">
-                  <input
-                    type="number"
-                    min="1"
-                    max="13"
-                    value={values[i]}
-                    onChange={(e) => {
-                      const newVals = [...values];
-                      newVals[i] = e.target.value;
-                      setValues(newVals);
+          {/* nodes */}
+          {nodes.map((node, i) => {
+            if (!node) return null;
+            const isBadConnected =
+              badEdges.some((e) => e.u === i || e.v === i) || false;
+            return (
+              <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
+                <circle
+                  r={26}
+                  fill="#22c55e"
+                  stroke="#bbf7d0"
+                  strokeWidth={3}
+                />
+                {/* centered input using foreignObject */}
+                <foreignObject x={-24} y={-24} width={48} height={48}>
+                  <div
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
-                    className="w-10 h-10 text-center bg-transparent text-white font-semibold border-none outline-none text-lg"
-                  />
-                </div>
-              </foreignObject>
-            </g>
-          ))}
+                  >
+                    <input
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      type="text"
+                      value={values[i] || ""}
+                      onChange={(e) => {
+                        // accept only digits and limit length to 2
+                        const v = e.target.value.replace(/[^0-9]/g, "").slice(0, 2);
+                        const copy = values.slice();
+                        copy[i] = v;
+                        setValues(copy);
+                      }}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 6,
+                        textAlign: "center",
+                        background: "transparent",
+                        color: "#fff",
+                        border: "none",
+                        fontWeight: 800,
+                        fontSize: 18,
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+                </foreignObject>
+              </g>
+            );
+          })}
         </svg>
       </div>
 
-      {/* Submit */}
-      <button
-        onClick={handleSubmit}
-        className="mt-6 px-6 py-2 bg-green-600 hover:bg-green-700 rounded-xl transition-all"
-      >
-        Submit
-      </button>
-
-      {/* Message */}
-      {message && (
-        <p className="mt-4 text-center text-lg text-yellow-300">{message}</p>
-      )}
+      {/* subtle spacer so content doesn't feel stuck to bottom on very small screens */}
+      <div style={{ height: 12 }} />
     </div>
   );
-};
-
-export default Game2;
+}
