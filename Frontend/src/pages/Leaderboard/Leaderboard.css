@@ -3,7 +3,7 @@
     src: url(/assets/digital-7.ttf); 
   }
   body{
-    overflow: auto;
+    overflow: hidden;
   }
   .leaderboardHeader {
    position: relative;
@@ -37,7 +37,7 @@
   }
   
   body {
-    background-size: cover;
+    
     color: #fff;
     background-attachment: fixed;
     font-family: "space", cursive;

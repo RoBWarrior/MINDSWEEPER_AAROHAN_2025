@@ -51,8 +51,8 @@ const Dashboard = () => {
           Choose Your Challenge
         </h1>
 
-        {/* ✅ Centered Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center mx-auto w-full max-w-6xl px-4">
+        <br />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center mx-auto w-full max-w-5xl px-4">
   {games.map((g) => (
     <div
       key={g.id}
