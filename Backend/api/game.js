@@ -100,7 +100,7 @@ router.get('/generate-game', async (req, res) => {
 
     await gameDoc.save();
 
-    return res.json({ gameId, grid: initialGrid });
+    return res.json({ gameId, grid: initialGrid, solutionToggles });
   } catch (err) {
     console.error('Error generating game:', err);
     return res.status(500).json({ error: 'Failed to generate game' });
@@ -157,7 +157,7 @@ router.post('/validate-game', async (req, res) => {
 
     const solved = finalGrid.every(row => row.every(cell => cell === 0));
     if (!solved) {
-      return res.json({ validGame: true, solved: false, message: 'Grid is not all zeros' });
+      return res.json({ validGame: true, solved: false, message: 'Grid is not all zeros',finalGrid });
     }
 
     // solved -> award points if email provided and user exists
