@@ -207,6 +207,9 @@ router.post('/validate-graph', async (req, res) => {
     // fetch game to get n and edges if available
     let game = null;
     if (gameId) game = await MathGraphGame.findOne({ gameId }).lean();
+    if (!game) {
+      return res.status(404).json({ validGame: false, solved: false, message: 'Game not found or expired' });
+    }
 
     const n = (game && Number.isInteger(game.n)) ? game.n : (Array.isArray(userNodes) ? userNodes.length : 7);
     if (!Array.isArray(userNodes) || userNodes.length !== n) {
@@ -281,6 +284,7 @@ router.post('/validate-graph', async (req, res) => {
           userDoc.points = (userDoc.points || 0) + awardedPoints;
           await userDoc.save();
         }
+        await MathGraphGame.deleteOne({ gameId });
       }
 
       // generate new game for next round (same n)
@@ -307,7 +311,7 @@ router.post('/validate-graph', async (req, res) => {
 
     return res.json({
       valid: false,
-      message: `Found ${badEdges.length} invalid edges (duplicate or non-positive differences).`,
+      message: `Found ${badEdges.length} invalid edges (duplicate differences).`,
       badEdges
     });
   } catch (err) {
