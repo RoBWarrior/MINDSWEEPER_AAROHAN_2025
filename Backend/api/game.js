@@ -133,12 +133,7 @@ router.post('/validate-game', async (req, res) => {
 
     // determine finalGrid by replaying moves or using provided grid
     let finalGrid;
-    if (Array.isArray(grid)) {
-      if (grid.length !== 3 || grid.some(r => !Array.isArray(r) || r.length !== 3)) {
-        return res.status(400).json({ validGame: false, solved: false, message: 'Invalid grid format' });
-      }
-      finalGrid = grid.map(row => row.map(cell => Number(cell) % 3));
-    } else if (Array.isArray(moves)) {
+    if  (Array.isArray(moves)) {
       finalGrid = cloneGrid(game.initialGrid);
       for (const mv of moves) {
         if (typeof mv !== 'object' || typeof mv.r !== 'number' || typeof mv.c !== 'number') {
